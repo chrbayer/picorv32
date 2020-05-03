@@ -20,12 +20,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#ifdef ICEBREAKER
+#ifdef ARTYA7C
+#  define MEM_TOTAL 0x20000 /* 128 KB */
+#elif ICEBREAKER
 #  define MEM_TOTAL 0x20000 /* 128 KB */
 #elif HX8KDEMO
 #  define MEM_TOTAL 0x200 /* 2 KB */
 #else
-#  error "Set -DICEBREAKER or -DHX8KDEMO when compiling firmware.c"
+#  error "Set -DARTYA7C; -DICEBREAKER or -DHX8KDEMO when compiling firmware.c"
 #endif
 
 // a pointer to this is a null pointer, but the compiler does not
@@ -54,6 +56,44 @@ void flashio(uint8_t *data, int len, uint8_t wrencmd)
 
 	((void(*)(uint8_t*, uint32_t, uint32_t))func)(data, len, wrencmd);
 }
+
+#ifdef ARTYA7C
+void set_flash_qspi_flag()
+{
+	uint8_t buffer[8];
+
+	// Read Volatile Enhanced Configuration register
+	buffer[0] = 0x65; // N25Q128: RDVECR
+	buffer[1] = 0xCD; // dummy place holder byte for rdata
+	flashio(buffer, 2, 0);
+	uint8_t vecr = buffer[1];
+
+	// Write Volatile Enhanced Configuration register
+	buffer[0] = 0x61; // N25Q128: WRVECR
+	buffer[1] = vecr & !0x80; // Clear bit 7: enable quad input command
+	flashio(buffer, 2, 0x06);
+}
+
+void set_flash_mode_spi()
+{
+	reg_spictrl = (reg_spictrl & ~0x00700000) | 0x00000000;
+}
+
+void set_flash_mode_dual()
+{
+	reg_spictrl = (reg_spictrl & ~0x00700000) | 0x00400000;
+}
+
+void set_flash_mode_quad()
+{
+	reg_spictrl = (reg_spictrl & ~0x00700000) | 0x00200000;
+}
+
+void set_flash_mode_qddr()
+{
+	reg_spictrl = (reg_spictrl & ~0x00700000) | 0x00600000;
+}
+#endif
 
 #ifdef HX8KDEMO
 void set_flash_qspi_flag()
@@ -354,6 +394,54 @@ void cmd_read_flash_id()
 }
 
 // --------------------------------------------------------
+#ifdef ARTYA7C
+uint8_t cmd_read_flash_reg(uint8_t cmd)
+{
+	uint8_t buffer[2] = {cmd, 0};
+	flashio(buffer, 2, 0);
+	return buffer[1];
+}
+
+void print_reg_bit(int val, const char *name)
+{
+	for (int i = 0; i < 12; i++) {
+		if (*name == 0)
+			putchar(' ');
+		else
+			putchar(*(name++));
+	}
+
+	putchar(val ? '1' : '0');
+	putchar('\n');
+}
+
+void cmd_read_flash_regs()
+{
+	putchar('\n');
+
+	uint8_t sr = cmd_read_flash_reg(0x05); // RDSR
+	uint8_t fsr = cmd_read_flash_reg(0x70);
+
+	print_reg_bit(sr & 0x01, "SR bit0");
+	print_reg_bit(sr & 0x02, "SR bit1");
+	print_reg_bit(sr & 0x04, "SR bit2");
+	print_reg_bit(sr & 0x08, "SR bit3");
+	print_reg_bit(sr & 0x10, "SR bit4");
+	print_reg_bit(sr & 0x20, "SR bit5");
+	print_reg_bit(sr & 0x40, "SR bit6");
+	print_reg_bit(sr & 0x80, "SR bit7");
+	putchar('\n');
+	print_reg_bit(fsr & 0x01, "FSR bit0");
+	print_reg_bit(fsr & 0x02, "FSR bit1");
+	print_reg_bit(fsr & 0x04, "FSR bit2");
+	print_reg_bit(fsr & 0x08, "FSR bit3");
+	print_reg_bit(fsr & 0x10, "FSR bit4");
+	print_reg_bit(fsr & 0x20, "FSR bit5");
+	print_reg_bit(fsr & 0x40, "FSR bit6");
+	print_reg_bit(fsr & 0x80, "FSR bit7");
+	putchar('\n');
+}
+#endif
 
 #ifdef HX8KDEMO
 uint8_t cmd_read_flash_regs_print(uint32_t addr, const char *name)
@@ -508,6 +596,12 @@ uint32_t cmd_benchmark(bool verbose, uint32_t *instns_p)
 }
 
 // --------------------------------------------------------
+
+#ifdef ARTYA7C
+void cmd_benchmark_all()
+{
+}
+#endif
 
 #ifdef HX8KDEMO
 void cmd_benchmark_all()
