@@ -1,5 +1,5 @@
 #ifdef ARTYA7C
-#  define MEM_TOTAL 0x20000 /* 128 KB */
+#  define MEM_TOTAL 0x200 /* 512 B */
 #elif ICEBREAKER
 #  define MEM_TOTAL 0x20000 /* 128 KB */
 #elif HX8KDEMO

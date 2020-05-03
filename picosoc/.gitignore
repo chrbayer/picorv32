@@ -1,5 +1,9 @@
 /spiflash_tb.vcd
 /spiflash_tb.vvp
+/artya7c_fw.elf
+/artya7c_fw.hex
+/artya7c_fw.bin
+/artya7c_sections.lds
 /hx8kdemo.asc
 /hx8kdemo.bin
 /hx8kdemo.blif
