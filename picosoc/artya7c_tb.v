@@ -50,6 +50,7 @@ module testbench;
 
 	wire flash_csb;
 	wire flash_clk;
+	wire [3:0] flash_io;
 	wire flash_io0;
 	wire flash_io1;
 	wire flash_io2;
@@ -66,20 +67,17 @@ module testbench;
 		.ser_tx   (ser_tx   ),
 		.flash_csb(flash_csb),
 		.flash_clk(flash_clk),
-		.flash_io0(flash_io0),
-		.flash_io1(flash_io1),
-		.flash_io2(flash_io2),
-		.flash_io3(flash_io3)
+		.flash_io(flash_io)
 	);
 
 	N25Qxxx qspi_flash (
 		.S (flash_csb),
 		.C_(flash_clk),
-		.HOLD_DQ3 (flash_io3), 
-		.DQ0 (flash_io0), 
-		.DQ1 (flash_io1), 
+		.HOLD_DQ3 (flash_io[3]), 
+		.DQ0 (flash_io[0]), 
+		.DQ1 (flash_io[1]), 
 		.Vcc (32'd3300), 
-		.Vpp_W_DQ2 (flash_io2)
+		.Vpp_W_DQ2 (flash_io[2])
 	);
 
 	reg [7:0] buffer;

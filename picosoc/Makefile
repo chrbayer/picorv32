@@ -4,6 +4,12 @@ CFLAGS=
 
 # ---- Digilent Arty-A7 rev C Board (Micron SPI Flash) ----
 
+artya7csim: artya7c_tb.vvp artya7c_fw.hex
+	vvp -N $< +firmware=artya7c_fw.hex
+
+artya7c_tb.vvp: artya7c_tb.v artya7c.v spimemio.v simpleuart.v picosoc.v ../picorv32.v N25Qxxx.v
+	iverilog -s testbench -o $@ $^
+
 artya7c_sections.lds: sections.lds
 	$(CROSS)cpp -P -DARTYA7C -o $@ $^
 
@@ -124,7 +130,7 @@ cmos.log: spimemio.v simpleuart.v picosoc.v ../picorv32.v
 # ---- Clean ----
 
 clean:
-	rm -f testbench.vvp testbench.vcd spiflash_tb.vvp spiflash_tb.vcd
+	rm -f testbench.vvp testbench.vcd spiflash_tb.vvp spiflash_tb.vcd cmos.log
 	rm -f artya7c_sections.lds artya7c_fw.elf artya7c_fw.hex artya7c_fw.bin
 	rm -f hx8kdemo_sections.lds hx8kdemo_fw.elf hx8kdemo_fw.hex hx8kdemo_fw.bin
 	rm -f icebreaker_sections.lds icebreaker_fw.elf icebreaker_fw.hex icebreaker_fw.bin
@@ -132,7 +138,6 @@ clean:
 	rm -f hx8kdemo_syn.v hx8kdemo_syn_tb.vvp hx8kdemo_tb.vvp
 	rm -f icebreaker.json icebreaker.log icebreaker.asc icebreaker.rpt icebreaker.bin
 	rm -f icebreaker_syn.v icebreaker_syn_tb.vvp icebreaker_tb.vvp
-	rm -f cmos.log
 
 .PHONY: spiflash_tb clean
 .PHONY: hx8kprog hx8kprog_fw hx8ksim hx8ksynsim

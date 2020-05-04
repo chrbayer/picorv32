@@ -31,10 +31,7 @@ module artya7c (
 
 	output flash_csb,
 	output flash_clk,
-	inout  flash_io0,
-	inout  flash_io1,
-	inout  flash_io2,
-	inout  flash_io3
+	inout  [3:0] flash_io
 );
 	parameter integer MEM_WORDS = 256;
 
@@ -45,19 +42,13 @@ module artya7c (
 		reset_cnt <= reset_cnt + !resetn;
 	end
 
-	wire [7:0] leds;
+	wire [3:0] flash_io_oe, flash_io_do, flash_io_di;
 
-	wire flash_io0_oe, flash_io0_do, flash_io0_di;
-	wire flash_io1_oe, flash_io1_do, flash_io1_di;
-	wire flash_io2_oe, flash_io2_do, flash_io2_di;
-	wire flash_io3_oe, flash_io3_do, flash_io3_di;
-
-	IOBUF flash_io_buf [3:0] (
-		.IO ({flash_io3, flash_io2, flash_io1, flash_io0}),
-		.I ({flash_io3_do, flash_io2_do, flash_io1_do, flash_io0_do}),
-		.T (~{flash_io3_oe, flash_io2_oe, flash_io1_oe, flash_io0_oe}),
-		.O ({flash_io3_di, flash_io2_di, flash_io1_di, flash_io0_di})
-	);
+	genvar i;
+	for (i=0; i<4; i=i+1) begin
+		assign flash_io_di[i] = flash_io[i];
+		assign flash_io[i] = flash_io_oe[i] ? flash_io_do[i] : 1'bZ;
+	end
 
 	wire        iomem_valid;
 	reg         iomem_ready;
@@ -67,7 +58,7 @@ module artya7c (
 	reg  [31:0] iomem_rdata;
 
 	reg [31:0] gpio;
-	assign leds = gpio;
+	assign leds = gpio[7:0];
 
 	always @(posedge clk) begin
 		if (!resetn) begin
@@ -84,6 +75,15 @@ module artya7c (
 			end
 		end
 	end
+
+	wire flash_io0_oe, flash_io0_do, flash_io0_di;
+	wire flash_io1_oe, flash_io1_do, flash_io1_di;
+	wire flash_io2_oe, flash_io2_do, flash_io2_di;
+	wire flash_io3_oe, flash_io3_do, flash_io3_di;
+
+	assign flash_io_oe = {flash_io3_oe, flash_io2_oe, flash_io1_oe, flash_io0_oe};
+	assign flash_io_do = {flash_io3_do, flash_io2_do, flash_io1_do, flash_io0_do};
+	assign {flash_io3_di, flash_io2_di, flash_io1_di, flash_io0_di} = flash_io_di;
 
 	picosoc #(
 		.BARREL_SHIFTER(0),
