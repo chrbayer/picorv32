@@ -1,14 +1,35 @@
 
+VIVADO_BASE ?= /opt/Xilinx/Vivado/2019.2
+VIVADO = $(VIVADO_BASE)/bin/vivado
+VIVADO_LIB = $(VIVADO_BASE)/data/verilog/src
 CROSS=riscv32-unknown-elf-
 CFLAGS=
 
 # ---- Digilent Arty-A7 rev C Board (Micron SPI Flash) ----
 
 artya7csim: artya7c_tb.vvp artya7c_fw.hex
-	vvp -N $< +firmware=artya7c_fw.hex
+	vvp -N $<
 
-artya7c_tb.vvp: artya7c_tb.v artya7c.v spimemio.v simpleuart.v picosoc.v ../picorv32.v N25Qxxx.v
-	iverilog -s testbench -o $@ $^
+artya7csynsim: artya7c_syn_tb.vvp artya7c_fw.hex
+	vvp -N $<
+
+artya7c_tb.vvp: artya7c_tb.v artya7c.v spimemio.v simpleuart.v picosoc.v ../picorv32.v N25Qxxx/N25Qxxx.v
+	iverilog -I N25Qxxx -s testbench -o $@ $^
+
+artya7c_syn_tb.vvp: artya7c_tb.v artya7c_syn.v N25Qxxx/N25Qxxx.v
+	iverilog -I N25Qxxx -s testbench -o $@ $^ -y$(VIVADO_LIB)/unisims $(VIVADO_LIB)/glbl.v -s glbl
+
+artya7c.bit:
+	rm -f $@.log
+	$(VIVADO) -nojournal -log $@.log -mode batch -source artya7c_synth.tcl
+	rm -rf .Xil fsm_encoding.os synth_*.backup.log usage_statistics_webtalk.*
+	-grep -B4 -A10 'Slice LUTs' $@.log
+	-grep -B1 -A9 ^Slack $@.log && echo
+
+artya7c_syn.v:
+	rm -f $@.log
+	$(VIVADO) -nojournal -log $@.log -mode batch -source artya7c_synth.tcl
+	rm -rf .Xil fsm_encoding.os synth_*.backup.log usage_statistics_webtalk.*
 
 artya7c_sections.lds: sections.lds
 	$(CROSS)cpp -P -DARTYA7C -o $@ $^
@@ -134,6 +155,8 @@ clean:
 	rm -f artya7c_sections.lds artya7c_fw.elf artya7c_fw.hex artya7c_fw.bin
 	rm -f hx8kdemo_sections.lds hx8kdemo_fw.elf hx8kdemo_fw.hex hx8kdemo_fw.bin
 	rm -f icebreaker_sections.lds icebreaker_fw.elf icebreaker_fw.hex icebreaker_fw.bin
+	rm -f artya7c*.log artya7c.bit
+	rm -f artya7c_syn.v artya7c_syn_tb.vvp artya7c_tb.vvp
 	rm -f hx8kdemo.blif hx8kdemo.log hx8kdemo.asc hx8kdemo.rpt hx8kdemo.bin
 	rm -f hx8kdemo_syn.v hx8kdemo_syn_tb.vvp hx8kdemo_tb.vvp
 	rm -f icebreaker.json icebreaker.log icebreaker.asc icebreaker.rpt icebreaker.bin
