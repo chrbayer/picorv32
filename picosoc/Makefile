@@ -29,8 +29,18 @@ artya7c.bit:
 artya7c_syn.v:
 	rm -f $@.log
 	$(VIVADO) -nojournal -log $@.log -mode batch -source artya7c_synth.tcl
-	rm -rf .Xil fsm_encoding.os synth_*.backup.log usage_statistics_webtalk.*
+	rm -rf .Xil/
 
+artya7cconf: artya7c.bit # configure via JTAG
+	rm -f $@.log
+	$(VIVADO) -nojournal -log $@.log -mode batch -source artya7c_prog.tcl -tclargs $<
+	rm -rf .Xil/
+
+artya7cprog_fw: artya7c.bit artya7c_fw.bin
+	rm -f $@.log
+	$(VIVADO) -nojournal -log $@.log -mode batch -source artya7c_flash.tcl
+	rm -rf .Xil/
+	
 artya7c_sections.lds: sections.lds
 	$(CROSS)cpp -P -DARTYA7C -o $@ $^
 
@@ -163,5 +173,6 @@ clean:
 	rm -f icebreaker_syn.v icebreaker_syn_tb.vvp icebreaker_tb.vvp
 
 .PHONY: spiflash_tb clean
+.PHONY: artya7cconf artya7cprog_fw artya7csim artya7csynsim
 .PHONY: hx8kprog hx8kprog_fw hx8ksim hx8ksynsim
 .PHONY: icebprog icebprog_fw icebsim icebsynsim
