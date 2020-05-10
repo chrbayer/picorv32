@@ -36,6 +36,11 @@ artya7cconf: artya7c.bit # configure via JTAG
 	$(VIVADO) -nojournal -log $@.log -mode batch -source artya7c_prog.tcl -tclargs $<
 	rm -rf .Xil/
 
+artya7cvio:
+	rm -f $@.log
+	$(VIVADO) -nojournal -log $@.log -mode batch -source artya7c_vio.tcl -tclargs $<
+	rm -rf .Xil/
+
 artya7cprog_fw: artya7c.bit artya7c_fw.bin
 	rm -f $@.log
 	$(VIVADO) -nojournal -log $@.log -mode batch -source artya7c_flash.tcl
@@ -165,7 +170,7 @@ clean:
 	rm -f artya7c_sections.lds artya7c_fw.elf artya7c_fw.hex artya7c_fw.bin
 	rm -f hx8kdemo_sections.lds hx8kdemo_fw.elf hx8kdemo_fw.hex hx8kdemo_fw.bin
 	rm -f icebreaker_sections.lds icebreaker_fw.elf icebreaker_fw.hex icebreaker_fw.bin
-	rm -f artya7c*.log artya7c.bit
+	rm -f artya7c*.log artya7c.bit artya7c.ltx
 	rm -f artya7c_syn.v artya7c_syn_tb.vvp artya7c_tb.vvp
 	rm -f hx8kdemo.blif hx8kdemo.log hx8kdemo.asc hx8kdemo.rpt hx8kdemo.bin
 	rm -f hx8kdemo_syn.v hx8kdemo_syn_tb.vvp hx8kdemo_tb.vvp
