@@ -33,7 +33,20 @@ module artya7c (
 	output flash_clk,
 	inout  [3:0] flash_io
 );
-	parameter integer MEM_WORDS = 256;
+	reg vio_reset = 1'b0;
+
+	parameter unsigned VIO_WIDTH = 8;
+	wire [VIO_WIDTH-1:0] vio_in;
+	wire [VIO_WIDTH-1:0] vio_out;
+
+	vio vio (
+		.clk (clk),
+		.probe_in0 (vio_in),
+		.probe_out0 (vio_out));
+
+	assign vio_in = leds;
+	always @(posedge clk) vio_reset <= vio_out[0];
+
 
 	reg [13:0] reset_cnt = 0;
 	wire resetn = &reset_cnt;
@@ -84,6 +97,8 @@ module artya7c (
 	assign flash_io_oe = {flash_io3_oe, flash_io2_oe, flash_io1_oe, flash_io0_oe};
 	assign flash_io_do = {flash_io3_do, flash_io2_do, flash_io1_do, flash_io0_do};
 	assign {flash_io3_di, flash_io2_di, flash_io1_di, flash_io0_di} = flash_io_di;
+	
+	parameter integer MEM_WORDS = 256;
 
 	picosoc #(
 		.BARREL_SHIFTER(0),

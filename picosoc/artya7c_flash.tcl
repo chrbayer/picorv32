@@ -26,15 +26,15 @@ create_hw_bitstream -hw_device [current_hw_device] \
 # Readback contents of flash memory device
 # ------------------------------------------------------------------------------
 
-# Program FPGA using current bitstream
-program_hw_devices [current_hw_device]
+# # Program FPGA using current bitstream
+# program_hw_devices [current_hw_device]
 
-# Refreshes the in-memory view of the current device
-refresh_hw_device -update_hw_probes false [current_hw_device]
+# # Refreshes the in-memory view of the current device
+# refresh_hw_device -update_hw_probes false [current_hw_device]
 
-# Dump previous flash contents
-readback_hw_cfgmem -force -verbose -all -format bin \
-    -file artya7c_flash_readback.bin [current_hw_cfgmem]
+# # Dump previous flash contents
+# readback_hw_cfgmem -force -verbose -all -format bin \
+#     -file artya7c_flash_readback.bin [current_hw_cfgmem]
 
 # ------------------------------------------------------------------------------
 # Update contents of flash memory device
@@ -47,16 +47,16 @@ program_hw_devices [current_hw_device]
 refresh_hw_device -update_hw_probes false [current_hw_device]
 
 # Create memory configuration file
-write_cfgmem -format HEX -force -size 16 -interface SPIx4 -verbose \
+write_cfgmem -format MCS -force -size 16 -interface SPIx4 -verbose \
     -loadbit "up 0x0 artya7c.bit" \
     -loaddata "up 0x100000 artya7c_fw.bin" \
-    artya7c_flash.hex
+    artya7c_flash.mcs
 
 # Set the address range used for erasing to the size of the programming file
 set_property PROGRAM.ADDRESS_RANGE {use_file} [current_hw_cfgmem]
 
 # Set the programming file to program into the SPI flash
-set_property PROGRAM.FILES artya7c_flash.hex [current_hw_cfgmem]
+set_property PROGRAM.FILES artya7c_flash.mcs [current_hw_cfgmem]
 
 # Set the termination of unused pins when programming the SPI flash
 set_property PROGRAM.UNUSED_PIN_TERMINATION {pull-none} [current_hw_cfgmem]

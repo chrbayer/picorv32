@@ -5,6 +5,15 @@ read_verilog spimemio.v
 read_verilog simpleuart.v
 read_xdc artya7c.xdc
 
+create_ip -name vio -vendor xilinx.com -library ip -module_name vio
+set_property -dict [list \
+	CONFIG.C_PROBE_IN0_WIDTH 8 \
+	CONFIG.C_PROBE_OUT0_WIDTH 8 \
+	CONFIG.C_NUM_PROBE_IN 1 \
+	CONFIG.C_NUM_PROBE_OUT 1 \
+] [get_ips vio]
+synth_ip [get_ips vio]
+
 synth_design -top artya7c -part xc7a35t-csg324-1 -flatten_hierarchy none -verbose
 opt_design -directive ExploreSequentialArea -verbose
 place_design -verbose
@@ -16,6 +25,7 @@ report_utilization
 report_timing
 write_verilog -force artya7c_syn.v
 
+set_property BITSTREAM.CONFIG.USERID 0xCAFEDECA [current_design]
 set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
 set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 4 [current_design]
 write_bitstream -force -file artya7c.bit -verbose
