@@ -14,6 +14,14 @@ set_property -dict [list \
 ] [get_ips vio]
 synth_ip [get_ips vio]
 
+create_ip -name ila -vendor xilinx.com -library ip -module_name ila
+set_property -dict [list \
+	CONFIG.C_PROBE0_WIDTH  32 \
+	CONFIG.C_DATA_DEPTH 4096 \
+	CONFIG.C_NUM_OF_PROBES 1 \
+] [get_ips ila]
+synth_ip [get_ips ila]
+
 synth_design -top artya7c -part xc7a35t-csg324-1 -flatten_hierarchy none -verbose
 opt_design -directive ExploreSequentialArea -verbose
 place_design -verbose

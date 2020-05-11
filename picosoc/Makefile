@@ -41,11 +41,16 @@ artya7cvio:
 	$(VIVADO) -nojournal -log $@.log -mode batch -source artya7c_vio.tcl -tclargs $<
 	rm -rf .Xil/
 
+artya7c_flash_dump.bin:
+	rm -f $@.log
+	$(VIVADO) -nojournal -log $@.log -mode batch -source artya7c_dump_flash.tcl
+	rm -rf .Xil/
+
 artya7cprog_fw: artya7c.bit artya7c_fw.bin
 	rm -f $@.log
 	$(VIVADO) -nojournal -log $@.log -mode batch -source artya7c_flash.tcl
 	rm -rf .Xil/
-	
+
 artya7c_sections.lds: sections.lds
 	$(CROSS)cpp -P -DARTYA7C -o $@ $^
 

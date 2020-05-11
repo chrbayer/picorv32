@@ -8,7 +8,8 @@ program_hw_devices [lindex [get_hw_devices] 0]
 
 # Check User ID
 refresh_hw_device -update_hw_probes false [current_hw_device]
-get_property REGISTER.USERCODE [current_hw_device ]
+set userid [get_property REGISTER.USERCODE [current_hw_device]]
+puts $userid
 
 close_hw_target
 disconnect_hw_server

@@ -44,12 +44,30 @@ module artya7c (
 		.probe_in0 (vio_in),
 		.probe_out0 (vio_out));
 
+	parameter unsigned ILA_WIDTH = 32;
+	wire [ILA_WIDTH-1:0] ila_in;
+
+	assign ila_in[0] = resetn;
+	assign ila_in[1] = vio_reset;
+	assign ila_in[2] = ser_rx;
+	assign ila_in[3] = ser_tx;
+
+	assign ila_in[8-1:4] = flash_io_do;
+	assign ila_in[12-1:8] = flash_io_oe;
+	assign ila_in[16-1:12] = flash_io_di;
+
+	assign ila_in[16] = flash_csb;
+	assign ila_in[17] = flash_clk;
+
+	ila ila (
+		.clk (clk),
+		.probe0 (ila_in));
+
 	assign vio_in = leds;
 	always @(posedge clk) vio_reset <= vio_out[0];
 
-
 	reg [13:0] reset_cnt = 0;
-	wire resetn = &reset_cnt;
+	wire resetn = &reset_cnt & !vio_reset;
 
 	always @(posedge clk) begin
 		reset_cnt <= reset_cnt + !resetn;
