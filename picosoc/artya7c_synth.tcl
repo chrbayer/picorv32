@@ -22,7 +22,7 @@ set_property -dict [list \
 ] [get_ips ila]
 synth_ip [get_ips ila]
 
-synth_design -top artya7c -part xc7a35t-csg324-1 -flatten_hierarchy none -verbose
+synth_design -top artya7c -part xc7a35t-csg324-1 -flatten_hierarchy none -verilog_define synthesis -verbose
 opt_design -directive ExploreSequentialArea -verbose
 place_design -verbose
 phys_opt_design -directive AggressiveExplore -verbose

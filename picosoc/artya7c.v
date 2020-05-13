@@ -35,6 +35,7 @@ module artya7c (
 );
 	reg vio_reset = 1'b0;
 
+`ifdef synthesis
 	parameter unsigned VIO_WIDTH = 8;
 	wire [VIO_WIDTH-1:0] vio_in;
 	wire [VIO_WIDTH-1:0] vio_out;
@@ -65,8 +66,9 @@ module artya7c (
 
 	assign vio_in = leds;
 	always @(posedge clk) vio_reset <= vio_out[0];
+`endif
 
-	reg [13:0] reset_cnt = 0;
+	reg [8:0] reset_cnt = 0;
 	wire resetn = &reset_cnt & !vio_reset;
 
 	always @(posedge clk) begin

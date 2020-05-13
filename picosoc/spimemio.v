@@ -202,6 +202,13 @@ module spimemio (
 		.flash_io3_di (flash_io3_di)
 	);
 
+	parameter START = 0;
+	parameter FLUSH = 1;
+	parameter ISSUE_RDID = 2;
+	parameter ISSUE_MIORDID_DUAL = 3;
+	parameter ISSUE_MIORDID_QUAD = 4;
+	parameter IDLE = 5;
+
 	reg [3:0] state;
 
 	always @(posedge clk) begin

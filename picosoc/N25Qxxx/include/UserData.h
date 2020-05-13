@@ -11,4 +11,5 @@
 
 `define FILENAME_mem "artya7c_fw.hex" // Memory File Name 
 `define FILENAME_sfdp "sfdp.vmf" // SFDP File Name 
-`define NVCR_DEFAULT_VALUE 'hFFFF
+//`define NVCR_DEFAULT_VALUE 'hFFFF
+`define NVCR_DEFAULT_VALUE 'hF1F7
