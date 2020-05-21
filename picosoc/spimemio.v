@@ -202,14 +202,7 @@ module spimemio (
 		.flash_io3_di (flash_io3_di)
 	);
 
-	parameter START = 0;
-	parameter FLUSH = 1;
-	parameter ISSUE_RDID = 2;
-	parameter ISSUE_MIORDID_DUAL = 3;
-	parameter ISSUE_MIORDID_QUAD = 4;
-	parameter IDLE = 5;
-
-	reg [3:0] state;
+	reg [7:0] state;
 
 	always @(posedge clk) begin
 		xfer_resetn <= 1;
@@ -224,6 +217,8 @@ module spimemio (
 			din_qspi <= 0;
 			din_ddr <= 0;
 			din_rd <= 0;
+			//rd_addr <= 0;
+			rd_inc <= 0;
 		end else begin
 			if (dout_valid && dout_tag == 1) buffer[ 7: 0] <= dout_data;
 			if (dout_valid && dout_tag == 2) buffer[15: 8] <= dout_data;
@@ -252,9 +247,101 @@ module spimemio (
 				1: begin
 					if (dout_valid) begin
 						xfer_resetn <= 0;
-						state <= 2;
+						state <= 20;
 					end
 				end
+
+				20: begin
+					din_valid <= 1;
+					din_data <= 8'h 85;
+					din_tag <= 4;
+					if (din_ready) begin
+						din_rd <= 1;
+						din_data <= 0;
+						din_valid <= 0;
+						state <= 21;
+					end
+				end
+				21: begin
+					if (!rd_wait || valid) begin
+						din_valid <= 1;
+						din_tag <= 4;
+						if (din_ready) begin
+							din_valid <= 0;
+							state <= 22;
+						end
+					end
+				end
+
+				22: begin
+					if (dout_valid) begin
+						xfer_resetn <= 0;
+						din_rd <= 0;
+						state <= 40;
+					end
+				end
+
+				30: begin
+					din_valid <= 1;
+					din_data <= 8'h 81;
+					din_tag <= 0;
+					if (din_ready) begin
+						din_valid <= 0;
+						state <= 31;
+					end
+				end
+				31: begin
+					if (dout_valid) begin
+						state <= 32;
+					end
+				end
+				32: begin
+					din_valid <= 1;
+					din_data <= 8'h FF;
+					din_tag <= 0;
+					if (din_ready) begin
+						din_valid <= 0;
+						state <= 33;
+					end
+				end
+				33: begin
+					if (dout_valid) begin
+						xfer_resetn <= 0;
+						state <= 40;
+					end
+				end
+
+				40: begin
+					din_valid <= 1;
+					din_data <= 8'h 65;
+					din_tag <= 4;
+					if (din_ready) begin
+						din_rd <= 1;
+						din_data <= 0;
+						din_valid <= 0;
+						state <= 41;
+					end
+				end
+				41: begin
+					if (!rd_wait || valid) begin
+						din_valid <= 1;
+						din_tag <= 4;
+						if (din_ready) begin
+							din_valid <= 0;
+							state <= 42;
+						end
+					end
+				end
+
+				42: begin
+					if (dout_valid) begin
+						xfer_resetn <= 0;
+						din_rd <= 0;
+						state <= 4;
+					end
+				end
+
+
 				2: begin
 					din_valid <= 1;
 					din_data <= 8'h ab;
@@ -417,6 +504,13 @@ module spimemio_xfer (
 	input      flash_io2_di,
 	input      flash_io3_di
 );
+	reg resetn_reg;
+	wire resetn_stretched;
+
+	always @(posedge clk) resetn_reg <= resetn;
+
+	assign resetn_stretched = resetn & resetn_reg;
+
 	reg [7:0] obuffer;
 	reg [7:0] ibuffer;
 
@@ -445,9 +539,9 @@ module spimemio_xfer (
 		xfer_tag_q <= xfer_tag;
 	end
 
-	assign din_ready = din_valid && resetn && next_fetch;
+	assign din_ready = din_valid && resetn_stretched && next_fetch;
 
-	assign dout_valid = (xfer_ddr_q ? fetch && !last_fetch : next_fetch && !fetch) && resetn;
+	assign dout_valid = (xfer_ddr_q ? fetch && !last_fetch : next_fetch && !fetch) && resetn_stretched;
 	assign dout_data = ibuffer;
 	assign dout_tag = xfer_tag_q;
 
@@ -540,7 +634,7 @@ module spimemio_xfer (
 	end
 
 	always @(posedge clk) begin
-		if (!resetn) begin
+		if (!resetn_stretched) begin
 			fetch <= 1;
 			last_fetch <= 1;
 			flash_csb <= 1;

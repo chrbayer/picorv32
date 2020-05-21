@@ -8,7 +8,7 @@ CFLAGS=
 # ---- Digilent Arty-A7 rev C Board (Micron SPI Flash) ----
 
 artya7csim: artya7c_tb.vvp artya7c_fw.hex
-	vvp -l $@.log -N $< -fst $@.fst
+	vvp -l $@.log -N $< -fst
 
 artya7csynsim: artya7c_syn_tb.vvp artya7c_fw.hex
 	vvp -N $<
