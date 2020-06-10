@@ -760,7 +760,7 @@ void cmd_echo()
 void main()
 {
 	reg_leds = 31;
-	reg_uart_clkdiv = 104;
+	reg_uart_clkdiv = 434;
 	print("Booting..\n");
 
 	reg_leds = 63;

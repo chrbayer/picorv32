@@ -254,7 +254,7 @@ module spimemio (
 				20: begin
 					din_valid <= 1;
 					din_data <= 8'h 85;
-					din_tag <= 4;
+					din_tag <= 0;
 					if (din_ready) begin
 						din_rd <= 1;
 						din_data <= 0;
@@ -265,7 +265,7 @@ module spimemio (
 				21: begin
 					if (!rd_wait || valid) begin
 						din_valid <= 1;
-						din_tag <= 4;
+						din_tag <= 0;
 						if (din_ready) begin
 							din_valid <= 0;
 							state <= 22;
@@ -314,7 +314,7 @@ module spimemio (
 				40: begin
 					din_valid <= 1;
 					din_data <= 8'h 65;
-					din_tag <= 4;
+					din_tag <= 0;
 					if (din_ready) begin
 						din_rd <= 1;
 						din_data <= 0;
@@ -325,7 +325,7 @@ module spimemio (
 				41: begin
 					if (!rd_wait || valid) begin
 						din_valid <= 1;
-						din_tag <= 4;
+						din_tag <= 0;
 						if (din_ready) begin
 							din_valid <= 0;
 							state <= 42;
@@ -467,6 +467,42 @@ module spimemio (
 			end
 		end
 	end
+
+`ifdef synthesis
+	parameter unsigned ILA_WIDTH = 72;
+	wire [ILA_WIDTH-1:0] ila_in;
+
+	assign ila_in[ILA_WIDTH-1] = resetn;
+
+	assign ila_in[64] = din_rd;
+	assign ila_in[63] = xfer_resetn;
+	assign ila_in[62] = din_cont;
+	assign ila_in[61] = din_ready;
+	assign ila_in[60] = din_valid;
+	assign ila_in[60-1:56] = din_tag;
+	assign ila_in[56-1:48] = din_data;
+
+	assign ila_in[44] = dout_valid;
+	assign ila_in[44-1:40] = dout_tag;
+	assign ila_in[40-1:32] = dout_data;
+
+	assign ila_in[12-1:8] = {flash_io3_oe, flash_io2_oe, flash_io1_oe, flash_io0_oe};
+	assign ila_in[16-1:12] = {flash_io3_di, flash_io2_di, flash_io1_di, flash_io0_di};
+	assign ila_in[20-1:16] = {flash_io3_do, flash_io2_do, flash_io1_do, flash_io0_do};
+
+	assign ila_in[20] = flash_csb;
+	assign ila_in[21] = flash_clk;
+	assign ila_in[22] = ready;
+	assign ila_in[23] = rd_wait;
+	assign ila_in[24] = valid;
+
+	assign ila_in[8-1:0] = state;
+
+	ila72 ila72_spimemio (
+		.clk (clk),
+		.probe0 (ila_in));
+`endif
+
 endmodule
 
 module spimemio_xfer (

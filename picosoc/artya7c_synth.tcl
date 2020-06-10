@@ -22,22 +22,30 @@ set_property -dict [list \
 ] [get_ips ila]
 synth_ip [get_ips ila]
 
+create_ip -name ila -vendor xilinx.com -library ip -module_name ila72
+set_property -dict [list \
+	CONFIG.C_PROBE0_WIDTH  72 \
+	CONFIG.C_DATA_DEPTH 1024 \
+	CONFIG.C_NUM_OF_PROBES 1 \
+] [get_ips ila72]
+synth_ip [get_ips ila72]
+
 synth_design -top artya7c -part xc7a35t-csg324-1 -flatten_hierarchy none -verilog_define synthesis -verbose
 opt_design -directive ExploreSequentialArea -verbose
-place_design -verbose
+place_design -directive ExtraPostPlacementOpt -timing_summary -verbose
 phys_opt_design -directive AggressiveExplore -verbose
 route_design -directive Explore -tns_cleanup -verbose
 phys_opt_design -directive AggressiveExplore -verbose
 
-report_utilization
-report_timing
+report_utilization -file artya7c_utilization_report.txt
+report_timing -file artya7c_timing_report.txt
 write_verilog -force artya7c_syn.v
 
 set_property BITSTREAM.CONFIG.USERID 0xCAFEDECA [current_design]
 set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
 set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 4 [current_design]
 write_bitstream -force -file artya7c.bit -verbose
-write_debug_probes artya7c.ltx
+write_debug_probes -force artya7c.ltx
 write_cfgmem -force -format BIN -size 16 -interface SPIx4 -loadbit "up 0x0 artya7c.bit" -verbose artya7c_bit.bin
 
 # write_cfgmem -format mcs -interface [dict get $board iface] -size [dict get $board size] \

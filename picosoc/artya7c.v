@@ -22,7 +22,7 @@
 `endif
 
 module artya7c (
-	input clk,
+	input clk100,
 
 	output ser_tx,
 	input ser_rx,
@@ -34,42 +34,12 @@ module artya7c (
 	inout  [3:0] flash_io
 );
 	reg vio_reset = 1'b0;
-
-`ifdef synthesis
-	parameter unsigned VIO_WIDTH = 8;
-	wire [VIO_WIDTH-1:0] vio_in;
-	wire [VIO_WIDTH-1:0] vio_out;
-
-	vio vio (
-		.clk (clk),
-		.probe_in0 (vio_in),
-		.probe_out0 (vio_out));
-
-	parameter unsigned ILA_WIDTH = 32;
-	wire [ILA_WIDTH-1:0] ila_in;
-
-	assign ila_in[0] = resetn;
-	assign ila_in[1] = vio_reset;
-	assign ila_in[2] = ser_rx;
-	assign ila_in[3] = ser_tx;
-
-	assign ila_in[8-1:4] = flash_io_do;
-	assign ila_in[12-1:8] = flash_io_oe;
-	assign ila_in[16-1:12] = flash_io_di;
-
-	assign ila_in[16] = flash_csb;
-	assign ila_in[17] = flash_clk;
-
-	ila ila (
-		.clk (clk),
-		.probe0 (ila_in));
-
-	assign vio_in = leds;
-	always @(posedge clk) vio_reset <= vio_out[0];
-`endif
+	wire pll_lock;
+	wire clk;
+	wire [31:0] iomem_addr;
 
 	reg [8:0] reset_cnt = 0;
-	wire resetn = &reset_cnt & !vio_reset;
+	wire resetn = &reset_cnt & !vio_reset &  pll_lock;
 
 	always @(posedge clk) begin
 		reset_cnt <= reset_cnt + !resetn;
@@ -86,7 +56,6 @@ module artya7c (
 	wire        iomem_valid;
 	reg         iomem_ready;
 	wire [3:0]  iomem_wstrb;
-	wire [31:0] iomem_addr;
 	wire [31:0] iomem_wdata;
 	reg  [31:0] iomem_rdata;
 
@@ -119,6 +88,26 @@ module artya7c (
 	assign {flash_io3_di, flash_io2_di, flash_io1_di, flash_io0_di} = flash_io_di;
 	
 	parameter integer MEM_WORDS = 256;
+
+	wire fb;
+	wire clk_pll;
+
+	PLLE2_BASE #(
+		.CLKIN1_PERIOD (10.0),
+		.CLKFBOUT_MULT (12),
+		.CLKOUT0_DIVIDE (24)
+	) pll_inst (
+		.CLKIN1 (clk100),
+		.CLKFBOUT (fb),
+		.CLKFBIN (fb),
+		.CLKOUT0 (clk_pll),
+		.LOCKED (pll_lock)
+	);
+
+	BUFG bufg_inst (
+		.I (clk_pll),
+		.O (clk)
+	);
 
 	picosoc #(
 		.BARREL_SHIFTER(0),
@@ -160,4 +149,33 @@ module artya7c (
 		.iomem_wdata  (iomem_wdata ),
 		.iomem_rdata  (iomem_rdata )
 	);
+
+`ifdef synthesis
+	parameter unsigned VIO_WIDTH = 8;
+	wire [VIO_WIDTH-1:0] vio_in;
+	wire [VIO_WIDTH-1:0] vio_out;
+
+	vio vio (
+		.clk (clk),
+		.probe_in0 (vio_in),
+		.probe_out0 (vio_out));
+
+	assign vio_in = leds;
+	always @(posedge clk) vio_reset <= vio_out[0];
+
+	// -------------------------------------------------------------------------
+
+	parameter unsigned ILA_WIDTH = 72;
+	wire [ILA_WIDTH-1:0] ila_in;
+
+	assign ila_in[ILA_WIDTH-1] = resetn;
+	assign ila_in[64-1:32] = iomem_addr;
+	assign ila_in[32-1:0]  = gpio;
+
+	ila72 ila72_inst (
+		.clk (clk),
+		.probe0 (ila_in));
+
+`endif
+
 endmodule

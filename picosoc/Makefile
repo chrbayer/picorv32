@@ -14,12 +14,12 @@ artya7csynsim: artya7c_syn_tb.vvp artya7c_fw.hex
 	vvp -N $<
 
 artya7c_tb.vvp: artya7c_tb.v artya7c.v spimemio.v simpleuart.v picosoc.v ../picorv32.v N25Qxxx/N25Qxxx.v
-	iverilog -I N25Qxxx -s testbench -o $@ $^
+	iverilog -I N25Qxxx -s testbench -o $@ $^ -y$(VIVADO_LIB)/unisims $(VIVADO_LIB)/glbl.v -s glbl
 
 artya7c_syn_tb.vvp: artya7c_tb.v artya7c_syn.v N25Qxxx/N25Qxxx.v
 	iverilog -I N25Qxxx -s testbench -o $@ $^ -y$(VIVADO_LIB)/unisims $(VIVADO_LIB)/glbl.v -s glbl
 
-artya7c.bit:
+artya7c.bit: artya7c.v spimemio.v simpleuart.v picosoc.v
 	rm -f $@.log
 	$(VIVADO) -nojournal -log $@.log -mode batch -source artya7c_synth.tcl
 	rm -rf .Xil fsm_encoding.os synth_*.backup.log usage_statistics_webtalk.*
@@ -54,8 +54,8 @@ artya7cprog_fw: artya7c.bit artya7c_fw.bin
 artya7c_sections.lds: sections.lds
 	$(CROSS)cpp -P -DARTYA7C -o $@ $^
 
-artya7c_fw.elf: hx8kdemo_sections.lds start.s firmware.c
-	$(CROSS)gcc $(CFLAGS) -DARTYA7C -march=rv32imc -Wl,-Bstatic,-T,hx8kdemo_sections.lds,--strip-debug -ffreestanding -nostdlib -o artya7c_fw.elf start.s firmware.c
+artya7c_fw.elf: artya7c_sections.lds start.s firmware.c
+	$(CROSS)gcc $(CFLAGS) -DARTYA7C -march=rv32imc -Wl,-Bstatic,-T,artya7c_sections.lds,--strip-debug -ffreestanding -nostdlib -o artya7c_fw.elf start.s firmware.c
 
 artya7c_fw.hex: artya7c_fw.elf
 	$(CROSS)objcopy -O verilog artya7c_fw.elf artya7c_fw.hex

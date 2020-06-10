@@ -1,9 +1,9 @@
 ################################################################################
 # 100 MHz Clock (Abracon ASEM1-100.000MHz-LC-T oscillator)
 
-set_property PACKAGE_PIN E3 [get_ports clk]
-create_clock -period 10 [get_ports clk]
-set_input_jitter clk 0.050
+set_property PACKAGE_PIN E3 [get_ports clk100]
+create_clock -period 10 [get_ports clk100]
+set_input_jitter clk100 0.050
 
 ################################################################################
 # USB-UART Interface

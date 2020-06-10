@@ -153,6 +153,27 @@ module picosoc (
 		.irq         (irq        )
 	);
 
+`ifdef synthesis
+	wire spimem_valid;
+	assign spimem_valid = mem_valid && mem_addr >= 4*MEM_WORDS && mem_addr < 32'h 0200_0000;
+
+	parameter unsigned ILA_WIDTH = 72;
+	wire [ILA_WIDTH-1:0] ila_in;
+
+	assign ila_in[ILA_WIDTH-1] = resetn;
+
+	assign ila_in[67] = spimem_ready;
+	assign ila_in[66] = spimem_valid;
+	assign ila_in[65] = mem_ready;
+	assign ila_in[64] = mem_valid;
+	assign ila_in[64-1:32] = mem_addr;
+	assign ila_in[32-1:0] = spimem_rdata;
+
+	ila72 ila72_inst (
+		.clk (clk),
+		.probe0 (ila_in));
+`endif
+
 	spimemio spimemio (
 		.clk    (clk),
 		.resetn (resetn),

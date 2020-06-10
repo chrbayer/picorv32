@@ -30,7 +30,7 @@ module testbench;
 		$dumpfile("testbench.vcd");
 		$dumpvars(0, testbench);
 
-		repeat (6) begin
+		repeat (8) begin
 			repeat (50000) @(posedge clk);
 			$display("+50000 cycles");
 		end
@@ -61,7 +61,7 @@ module testbench;
 	end
 
 	artya7c uut (
-		.clk      (clk      ),
+		.clk100      (clk      ),
 		.leds     (leds     ),
 		.ser_rx   (ser_rx   ),
 		.ser_tx   (ser_tx   ),
