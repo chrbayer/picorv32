@@ -24,6 +24,8 @@
 #  define MEM_TOTAL 0x20000 /* 128 KB */
 #elif HX8KDEMO
 #  define MEM_TOTAL 0x200 /* 2 KB */
+#elif ECP5EVN
+#  define MEM_TOTAL 0x200 /* 2 KB */
 #else
 #  error "Set -DICEBREAKER or -DHX8KDEMO when compiling firmware.c"
 #endif
@@ -150,6 +152,32 @@ void set_flash_mode_qddr()
 void enable_flash_crm()
 {
 	reg_spictrl |= 0x00100000;
+}
+#endif
+
+#ifdef ECP5EVN
+void set_flash_qspi_flag()
+{
+}
+
+void set_flash_mode_spi()
+{
+}
+
+void set_flash_mode_dual()
+{
+}
+
+void set_flash_mode_quad()
+{
+}
+
+void set_flash_mode_qddr()
+{
+}
+
+void enable_flash_crm()
+{
 }
 #endif
 
@@ -447,6 +475,56 @@ void cmd_read_flash_regs()
 }
 #endif
 
+#ifdef ECP5EVN
+uint8_t cmd_read_flash_reg(uint8_t cmd)
+{
+	uint8_t buffer[2] = {cmd, 0};
+	flashio(buffer, 2, 0);
+	return buffer[1];
+}
+
+void print_reg_bit(int val, const char *name)
+{
+	for (int i = 0; i < 12; i++) {
+		if (*name == 0)
+			putchar(' ');
+		else
+			putchar(*(name++));
+	}
+
+	putchar(val ? '1' : '0');
+	putchar('\n');
+}
+
+void cmd_read_flash_regs()
+{
+	putchar('\n');
+
+	uint8_t sr1 = cmd_read_flash_reg(0x05);
+	uint8_t sr2 = cmd_read_flash_reg(0x15);
+
+	print_reg_bit(sr1 & 0x01, "S0  (WIP)");
+	print_reg_bit(sr1 & 0x02, "S1  (WEL)");
+	print_reg_bit(sr1 & 0x04, "S2  (BP0)");
+	print_reg_bit(sr1 & 0x08, "S3  (BP1)");
+	print_reg_bit(sr1 & 0x10, "S4  (BP2)");
+	print_reg_bit(sr1 & 0x20, "S5  (BP3)");
+	print_reg_bit(sr1 & 0x40, "S6  (QE)");
+	print_reg_bit(sr1 & 0x80, "S7  (SRWD)");
+	putchar('\n');
+
+	print_reg_bit(sr2 & 0x01, "S8  (ODS0)");
+	print_reg_bit(sr2 & 0x02, "S9  (ODS1)");
+	print_reg_bit(sr2 & 0x04, "S10 (ODS2)");
+	print_reg_bit(sr2 & 0x08, "S11 (TB)");
+	print_reg_bit(sr2 & 0x10, "S12 ----");
+	print_reg_bit(sr2 & 0x20, "S13 ----");
+	print_reg_bit(sr2 & 0x40, "S14 (DC0)");
+	print_reg_bit(sr2 & 0x80, "S15 (DC1)");
+	putchar('\n');
+}
+#endif
+
 // --------------------------------------------------------
 
 uint32_t cmd_benchmark(bool verbose, uint32_t *instns_p)
@@ -650,6 +728,12 @@ void cmd_benchmark_all()
 	print_hex(cmd_benchmark(false, &instns), 8);
 	putchar('\n');
 
+}
+#endif
+
+#ifdef ECP5EVN
+void cmd_benchmark_all()
+{
 }
 #endif
 

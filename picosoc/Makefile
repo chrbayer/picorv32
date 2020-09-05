@@ -94,6 +94,57 @@ icebreaker_fw.hex: icebreaker_fw.elf
 icebreaker_fw.bin: icebreaker_fw.elf
 	$(CROSS)objcopy -O binary icebreaker_fw.elf icebreaker_fw.bin
 
+# ---- EPC5 5G-85K Evaluation Board ----
+
+ecp5evnsim: ecp5evn_tb.vvp ecp5evn_fw.hex
+	vvp -N $< +firmware=ecp5evn_fw.hex
+
+ecp5evnsynsim: ecp5evn_syn_tb.vvp ecp5evn_fw.hex
+	vvp -N $< +firmware=ecp5evn_fw.hex
+
+ecp5evn.json: ecp5evn.v spimemio.v simpleuart.v picosoc.v ../picorv32.v
+	yosys -ql ecp5evn.log -p "synth_ecp5 -top ecp5evn -json $@" $^
+
+ecp5evn_tb.vvp: ecp5evn_tb.v ecp5evn.v spimemio.v simpleuart.v picosoc.v ../picorv32.v spiflash.v
+	iverilog -I`yosys-config --datdir`/ecp5 -s testbench -o $@ $^ `yosys-config --datdir/ecp5/cells_sim.v --datdir/ecp5/cells_bb.v`
+
+ecp5evn_syn_tb.vvp: ecp5evn_tb.v ecp5evn_syn.v spiflash.v
+	iverilog -I`yosys-config --datdir`/ecp5 -s testbench -o $@ $^ `yosys-config --datdir/ecp5/cells_sim.v --datdir/ecp5/cells_bb.v`
+
+ecp5evn_syn.v: ecp5evn_tb.json
+	yosys -p 'read_json ecp5evn_tb.json; write_verilog ecp5evn_syn.v'
+
+ecp5evn_tb.json: ecp5evn.v spimemio.v simpleuart.v picosoc.v ../picorv32.v
+	yosys -ql ecp5evn.log -D SIM -p "synth_ecp5 -top ecp5evn -json $@" $^
+
+ecp5evn_out.config: ecp5evn.lpf ecp5evn.json
+	nextpnr-ecp5 --um5g-85k --package CABGA381 --json ecp5evn.json --textcfg $@ --lpf ecp5evn.lpf
+
+ecp5evn.bit: ecp5evn_out.config
+	ecppack $< $@
+
+ecp5evnprog: ecp5evn.bit ecp5evn_fw.bin
+	openFPGALoader -f ecp5evn.bit
+	openFPGALoader -f -o 0x00200000 ecp5evn_fw.bin
+
+ecp5evnprog_bit: ecp5evn.bit
+	openFPGALoader -f ecp5evn.bit
+
+ecp5evnprog_fw: ecp5evn_fw.bin
+	openFPGALoader -f -o 0x00200000 ecp5evn_fw.bin
+
+ecp5evn_sections.lds: sections.lds
+	$(CROSS)cpp -P -DECP5EVN -o $@ $^
+
+ecp5evn_fw.elf: ecp5evn_sections.lds start.s firmware.c
+	$(CROSS)gcc $(CFLAGS) -mabi=ilp32 -DECP5EVN -march=rv32i -Wl,-Bstatic,-T,ecp5evn_sections.lds,--strip-debug -ffreestanding -nostdlib -o ecp5evn_fw.elf start.s firmware.c
+
+ecp5evn_fw.hex: ecp5evn_fw.elf
+	$(CROSS)objcopy -O verilog ecp5evn_fw.elf ecp5evn_fw.hex
+
+ecp5evn_fw.bin: ecp5evn_fw.elf
+	$(CROSS)objcopy -O binary ecp5evn_fw.elf ecp5evn_fw.bin
+
 # ---- Testbench for SPI Flash Model ----
 
 spiflash_tb: spiflash_tb.vvp firmware.hex
@@ -117,7 +168,11 @@ clean:
 	rm -f hx8kdemo_syn.v hx8kdemo_syn_tb.vvp hx8kdemo_tb.vvp
 	rm -f icebreaker.json icebreaker.log icebreaker.asc icebreaker.rpt icebreaker.bin
 	rm -f icebreaker_syn.v icebreaker_syn_tb.vvp icebreaker_tb.vvp
+	rm -f ecp5evn_fw.elf ecp5evn_fw.hex ecp5evn_fw.bin
+	rm -f ecp5evn.json ecp5evn.log ecp5evn.bit ecp5evn_out.config
+	rm -f ecp5evn_tb.json ecp5evn_tb.vvp ecp5evn_syn_tb.vvp ecp5evn_syn.v
 
 .PHONY: spiflash_tb clean
 .PHONY: hx8kprog hx8kprog_fw hx8ksim hx8ksynsim
 .PHONY: icebprog icebprog_fw icebsim icebsynsim
+.PHONY: ecp5evnprog ecp5evnprog_fw ecp5evnsim ecp5evnsynsim

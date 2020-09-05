@@ -1,5 +1,12 @@
 /spiflash_tb.vcd
 /spiflash_tb.vvp
+/ecp5evn.bit
+/ecp5evn.json
+/ecp5evn.log
+/ecp5evn_fw.bin
+/ecp5evn_fw.elf
+/ecp5evn_out.config
+/ecp5evn_sections.lds
 /hx8kdemo.asc
 /hx8kdemo.bin
 /hx8kdemo.blif
