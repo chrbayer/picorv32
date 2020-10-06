@@ -26,6 +26,8 @@
 #  define MEM_TOTAL 0x200 /* 2 KB */
 #elif ECP5EVN
 #  define MEM_TOTAL 0x200 /* 2 KB */
+#elif ULX3S
+#  define MEM_TOTAL 0x200 /* 2 KB */
 #else
 #  error "Set -DICEBREAKER or -DHX8KDEMO when compiling firmware.c"
 #endif
@@ -155,7 +157,7 @@ void enable_flash_crm()
 }
 #endif
 
-#ifdef ECP5EVN
+#if defined(ECP5EVN) || defined(ULX3S)
 void set_flash_qspi_flag()
 {
 }
@@ -475,7 +477,7 @@ void cmd_read_flash_regs()
 }
 #endif
 
-#ifdef ECP5EVN
+#if defined(ECP5EVN) || defined(ULX3S)
 uint8_t cmd_read_flash_reg(uint8_t cmd)
 {
 	uint8_t buffer[2] = {cmd, 0};
@@ -731,7 +733,7 @@ void cmd_benchmark_all()
 }
 #endif
 
-#ifdef ECP5EVN
+#if defined(ECP5EVN) || defined(ULX3S)
 void cmd_benchmark_all()
 {
 }
@@ -750,7 +752,11 @@ void cmd_echo()
 void main()
 {
 	reg_leds = 31;
+#ifdef ULX3S
+	reg_uart_clkdiv = 217;
+#else
 	reg_uart_clkdiv = 104;
+#endif
 	print("Booting..\n");
 
 	reg_leds = 63;

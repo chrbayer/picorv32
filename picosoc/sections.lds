@@ -7,6 +7,9 @@
 #elif ECP5EVN
 #  define MEM_TOTAL 0x200 /* 2 KB */
 #  define FLASH_ORIGIN 0x00200000 /* 2 MB */
+#elif ULX3S
+#  define MEM_TOTAL 0x200 /* 2 KB */
+#  define FLASH_ORIGIN 0x00200000 /* 2 MB */
 #else
 #  error "Set -DICEBREAKER or -DHX8KDEMO when compiling firmware.c"
 #endif

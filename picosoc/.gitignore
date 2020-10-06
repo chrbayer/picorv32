@@ -32,5 +32,12 @@
 /icebreaker_fw.bin
 /icebreaker_sections.lds
 /testbench.vcd
+/ulx3s.bit
+/ulx3s.json
+/ulx3s.log
+/ulx3s_fw.bin
+/ulx3s_fw.elf
+/ulx3s_out.config
+/ulx3s_sections.lds
 /cmos.log
 
