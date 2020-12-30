@@ -10,6 +10,7 @@ vi:
 	vi rjl_firmware.c
 
 hwvi:
+vihw:
 	vi icebreaker.v
 
 # ---- iCE40 HX8K Breakout Board ----
