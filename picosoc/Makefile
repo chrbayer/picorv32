@@ -1,6 +1,16 @@
 
-CROSS=riscv32-unknown-elf-
+CROSS=/opt/riscv/bin/riscv32-unknown-linux-gnu-
 CFLAGS=
+
+all: rjl_fw
+
+all_plus_hw: rjlprog
+
+vi:
+	vi rjl_firmware.c
+
+hwvi:
+	vi icebreaker.v
 
 # ---- iCE40 HX8K Breakout Board ----
 
@@ -79,20 +89,36 @@ icebprog: icebreaker.bin icebreaker_fw.bin
 	iceprog icebreaker.bin
 	iceprog -o 1M icebreaker_fw.bin
 
+rjlprog: icebreaker.bin rjl_fw.bin
+	iceprog icebreaker.bin
+	iceprog -o 1M rjl_fw.bin
+
 icebprog_fw: icebreaker_fw.bin
 	iceprog -o 1M icebreaker_fw.bin
+
+rjl_fw: rjl_fw.bin
+	iceprog -o 1M rjl_fw.bin
 
 icebreaker_sections.lds: sections.lds
 	$(CROSS)cpp -P -DICEBREAKER -o $@ $^
 
 icebreaker_fw.elf: icebreaker_sections.lds start.s firmware.c
-	$(CROSS)gcc $(CFLAGS) -DICEBREAKER -march=rv32ic -Wl,-Bstatic,-T,icebreaker_sections.lds,--strip-debug -ffreestanding -nostdlib -o icebreaker_fw.elf start.s firmware.c
+	$(CROSS)gcc $(CFLAGS) -DICEBREAKER -march=rv32idc -Wl,-Bstatic,-T,icebreaker_sections.lds,--strip-debug -ffreestanding -nostdlib -o icebreaker_fw.elf start.s firmware.c
+
+rjl_fw.elf: icebreaker_sections.lds start.s rjl_firmware.c
+	$(CROSS)gcc $(CFLAGS) -DICEBREAKER -march=rv32idc -Wl,-Bstatic,-T,icebreaker_sections.lds,--strip-debug -ffreestanding -nostdlib -o rjl_fw.elf start.s rjl_firmware.c
 
 icebreaker_fw.hex: icebreaker_fw.elf
 	$(CROSS)objcopy -O verilog icebreaker_fw.elf icebreaker_fw.hex
 
+rjl_fw.hex: rjl_fw.elf
+	$(CROSS)objcopy -O verilog rjl_fw.elf rjl_fw.hex
+
 icebreaker_fw.bin: icebreaker_fw.elf
 	$(CROSS)objcopy -O binary icebreaker_fw.elf icebreaker_fw.bin
+
+rjl_fw.bin: rjl_fw.elf
+	$(CROSS)objcopy -O binary rjl_fw.elf rjl_fw.bin
 
 # ---- Testbench for SPI Flash Model ----
 

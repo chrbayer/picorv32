@@ -36,6 +36,7 @@ extern uint32_t sram;
 #define reg_uart_clkdiv (*(volatile uint32_t*)0x02000004)
 #define reg_uart_data (*(volatile uint32_t*)0x02000008)
 #define reg_leds (*(volatile uint32_t*)0x03000000)
+#define reg_new_pmod_leds (*(volatile uint32_t*)0x04000000)
 
 // --------------------------------------------------------
 
@@ -663,8 +664,26 @@ void cmd_echo()
 
 // --------------------------------------------------------
 
+void delay() {
+	uint32_t cycles_begin, cycles_now, cycles = 0;
+	__asm__ volatile ("rdcycle %0" : "=r"(cycles_begin));
+	while (cycles < 12000000) {
+		__asm__ volatile ("rdcycle %0" : "=r"(cycles_now));
+		cycles = cycles_now - cycles_begin;
+	}
+}
+
 void main()
 {
+	reg_new_pmod_leds = 1;
+	delay();
+	for (int i=0; i<4; i++) {
+		delay();
+		reg_new_pmod_leds = reg_new_pmod_leds << 1;
+	}
+	delay();
+	reg_new_pmod_leds = 0;
+
 	reg_leds = 31;
 	reg_uart_clkdiv = 104;
 	print("Booting..\n");

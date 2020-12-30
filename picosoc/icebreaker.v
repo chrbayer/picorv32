@@ -38,6 +38,12 @@ module icebreaker (
 	output ledr_n,
 	output ledg_n,
 
+	output activity_red,
+	output activity_green,
+
+	output sense_led,
+	output report_led,
+
 	output flash_csb,
 	output flash_clk,
 	inout  flash_io0,
@@ -65,6 +71,13 @@ module icebreaker (
 	assign ledr_n = !leds[6];
 	assign ledg_n = !leds[7];
 
+	wire [3:0] new_pmod_leds;
+
+	assign report_led = new_pmod_leds[0];
+	assign sense_led = new_pmod_leds[1];
+	assign activity_red = new_pmod_leds[2];
+	assign activity_green = new_pmod_leds[3];
+
 	wire flash_io0_oe, flash_io0_do, flash_io0_di;
 	wire flash_io1_oe, flash_io1_do, flash_io1_di;
 	wire flash_io2_oe, flash_io2_do, flash_io2_di;
@@ -90,21 +103,42 @@ module icebreaker (
 	reg [31:0] gpio;
 	assign leds = gpio;
 
+	reg [31:0] other_gpio;
+	assign new_pmod_leds = other_gpio;
+
 	always @(posedge clk) begin
 		if (!resetn) begin
 			gpio <= 0;
+			other_gpio <= 0;
 		end else begin
 			iomem_ready <= 0;
-			if (iomem_valid && !iomem_ready && iomem_addr[31:24] == 8'h 03) begin
-				iomem_ready <= 1;
-				iomem_rdata <= gpio;
-				if (iomem_wstrb[0]) gpio[ 7: 0] <= iomem_wdata[ 7: 0];
-				if (iomem_wstrb[1]) gpio[15: 8] <= iomem_wdata[15: 8];
-				if (iomem_wstrb[2]) gpio[23:16] <= iomem_wdata[23:16];
-				if (iomem_wstrb[3]) gpio[31:24] <= iomem_wdata[31:24];
-			end
-		end
-	end
+			if (iomem_valid && !iomem_ready) begin
+				case (iomem_addr[31:24])
+					8'h 03:
+					begin
+						iomem_ready <= 1;
+						iomem_rdata <= gpio;
+						if (iomem_wstrb[0]) gpio[ 7: 0] <= iomem_wdata[ 7: 0];
+						if (iomem_wstrb[1]) gpio[15: 8] <= iomem_wdata[15: 8];
+						if (iomem_wstrb[2]) gpio[23:16] <= iomem_wdata[23:16];
+						if (iomem_wstrb[3]) gpio[31:24] <= iomem_wdata[31:24];
+					end
+					8'h 04:
+					begin
+						iomem_ready <= 1;
+						iomem_rdata <= other_gpio;
+						if (iomem_wstrb[0]) other_gpio[ 7: 0] <= iomem_wdata[ 7: 0];
+						if (iomem_wstrb[1]) other_gpio[15: 8] <= iomem_wdata[15: 8];
+						if (iomem_wstrb[2]) other_gpio[23:16] <= iomem_wdata[23:16];
+						if (iomem_wstrb[3]) other_gpio[31:24] <= iomem_wdata[31:24];
+					end
+					default:
+					begin
+					end
+				endcase
+			end // if iomem_valid
+		end // else
+	end // always
 
 	picosoc #(
 		.BARREL_SHIFTER(0),

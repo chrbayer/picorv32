@@ -23,3 +23,14 @@ set_io led5       26
 # Onboard LEDs
 set_io ledr_n     11
 set_io ledg_n     37
+
+# Activity indicator
+set_io activity_red	3
+set_io activity_green	4
+
+# sense-and-report
+set_io sense_led	43
+set_io report_led	42
+
+# user button
+set_io user_button	10
