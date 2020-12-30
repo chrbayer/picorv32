@@ -13,6 +13,13 @@ hwvi:
 vihw:
 	vi icebreaker.v
 
+commit:
+	git add icebreaker.v rjl_firmware.c Makefile
+	make clean
+	git commit
+	git pull
+	git push
+
 # ---- iCE40 HX8K Breakout Board ----
 
 hx8ksim: hx8kdemo_tb.vvp hx8kdemo_fw.hex
@@ -144,6 +151,7 @@ clean:
 	rm -f hx8kdemo_syn.v hx8kdemo_syn_tb.vvp hx8kdemo_tb.vvp
 	rm -f icebreaker.json icebreaker.log icebreaker.asc icebreaker.rpt icebreaker.bin
 	rm -f icebreaker_syn.v icebreaker_syn_tb.vvp icebreaker_tb.vvp
+	rm -fv rjl_fw.bin rjl_fw.elf
 
 .PHONY: spiflash_tb clean
 .PHONY: hx8kprog hx8kprog_fw hx8ksim hx8ksynsim
