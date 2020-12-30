@@ -71,12 +71,11 @@ module icebreaker (
 	assign ledr_n = !leds[6];
 	assign ledg_n = !leds[7];
 
-	wire [3:0] new_pmod_leds;
+	wire [2:0] new_pmod_leds;
 
 	assign report_led = new_pmod_leds[0];
-	assign sense_led = new_pmod_leds[1];
-	assign activity_red = new_pmod_leds[2];
-	assign activity_green = new_pmod_leds[3];
+	assign activity_red = new_pmod_leds[1];
+	assign activity_green = new_pmod_leds[2];
 
 	wire flash_io0_oe, flash_io0_do, flash_io0_di;
 	wire flash_io1_oe, flash_io1_do, flash_io1_di;
@@ -106,6 +105,9 @@ module icebreaker (
 	reg [31:0] other_gpio;
 	assign new_pmod_leds = other_gpio;
 
+	reg [31:0] gpio_3;
+	assign sense_led = gpio_3;
+
 	always @(posedge clk) begin
 		if (!resetn) begin
 			gpio <= 0;
@@ -131,6 +133,15 @@ module icebreaker (
 						if (iomem_wstrb[1]) other_gpio[15: 8] <= iomem_wdata[15: 8];
 						if (iomem_wstrb[2]) other_gpio[23:16] <= iomem_wdata[23:16];
 						if (iomem_wstrb[3]) other_gpio[31:24] <= iomem_wdata[31:24];
+					end
+					8'h 05:
+					begin
+						iomem_ready <= 1;
+						iomem_rdata <= gpio_3;
+						if (iomem_wstrb[0]) gpio_3[ 7: 0] <= iomem_wdata[ 7: 0];
+						if (iomem_wstrb[1]) gpio_3[15: 8] <= iomem_wdata[15: 8];
+						if (iomem_wstrb[2]) gpio_3[23:16] <= iomem_wdata[23:16];
+						if (iomem_wstrb[3]) gpio_3[31:24] <= iomem_wdata[31:24];
 					end
 					default:
 					begin

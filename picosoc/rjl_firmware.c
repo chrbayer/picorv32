@@ -24,8 +24,9 @@
 // know that because "sram" is a linker symbol from sections.lds.
 extern uint32_t sram;
 
-#define reg_leds (*(volatile uint32_t*)0x03000000)
-#define reg_new_pmod_leds (*(volatile uint32_t*)0x04000000)
+#define reg_leds (*(volatile uint32_t *)0x03000000)
+#define reg_new_pmod_leds (*(volatile uint32_t *)0x04000000)
+#define reg_gpio_3 (*(volatile uint32_t *)0x05000000)
 
 // --------------------------------------------------------
 
@@ -41,20 +42,44 @@ void delay() {
 	}
 }
 
+// The following are mapped to 0x04
+#define report_led (1<<0)
+#define activity_red_led (1<<1)
+#define activity_green_led (1<<2)
+
+// The following is mapped to 0x05
+#define sense_led (1<<0)
+
 void activity_indicator_red_on() {
-	reg_new_pmod_leds |= 1;
+	reg_new_pmod_leds |= activity_red_led;
 }
 
 void activity_indicator_green_on() {
-	reg_new_pmod_leds |= 2;
+	reg_new_pmod_leds |= activity_green_led;
 }
 
 void activity_indicator_red_off() {
-	reg_new_pmod_leds &= ~1;
+	reg_new_pmod_leds &= ~activity_red_led;
 }
 
 void activity_indicator_green_off() {
-	reg_new_pmod_leds &= ~2;
+	reg_new_pmod_leds &= ~activity_green_led;
+}
+
+void report_led_on() {
+	reg_new_pmod_leds |= report_led;
+}
+
+void report_led_off() {
+	reg_new_pmod_leds &= ~report_led;
+}
+
+void sense_led_on() {
+	reg_gpio_3 |= sense_led;
+}
+
+void sense_led_off() {
+	reg_gpio_3 &= ~sense_led;
 }
 
 void activity_indicator_red() {
@@ -67,23 +92,16 @@ void activity_indicator_green() {
 	activity_indicator_red_off();
 }
 
-void report_led_on() {
-	reg_new_pmod_leds |= 4;
-}
-
-void report_led_off() {
-	reg_new_pmod_leds &= ~4;
-}
-
 void all_leds_off() {
 	reg_leds = 0;
 	reg_new_pmod_leds = 0;
+	reg_gpio_3 = 0;
 }
 
 void nonblocking_activity_indicator() {
 	static enum states {red, green, invalid_state} state = red;
 	static uint32_t time_of_last_state_change = 0;
-	const unsigned int period = 2000000; // 12 000 000 per second
+	const unsigned int period = 2500000; // 12 000 000 per second
 	uint32_t now;
 
 	// The cycle counter is only 32 bits and ticks 12 million
@@ -109,12 +127,7 @@ void nonblocking_activity_indicator() {
 }
 
 void nonblocking_sense_and_report() {
-	if (reg_new_pmod_leds & 1) {
-		report_led_on();
-	}
-	else {
-		report_led_off();
-	}
+	report_led_on();
 }
 
 void main() {
