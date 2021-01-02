@@ -35,3 +35,5 @@
 /synth.log
 /synth.v
 .*.swp
+rjl_fw.bin
+rjl_fw.elf
