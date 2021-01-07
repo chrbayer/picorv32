@@ -1,3 +1,9 @@
+# For rvnp:
+## Run Test in ./
+    make test_rvnp  RISCV_GNU_TOOLCHAIN_INSTALL_PREFIX=/opt/rv32
+## Run Synth in ./scripts/vivado
+    make synth_area_rvnp VIVADO_BASE=/home/share/eda/xilinx/Vivado/2018.3/
+
 
 PicoRV32 - A Size-Optimized RISC-V CPU
 ======================================
