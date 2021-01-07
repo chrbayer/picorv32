@@ -45,6 +45,34 @@ module testbench;
 	end
 
 	picorv32 #(
+`ifdef RVNP
+                .ENABLE_COUNTERS     (0),
+                .ENABLE_COUNTERS64   (0),
+                .ENABLE_REGS_16_31   (0),
+                .ENABLE_REGS_DUALPORT(0),
+		.LATCHED_MEM_RDATA   (1),
+                .TWO_STAGE_SHIFT     (0),
+                .BARREL_SHIFTER      (0),
+                .TWO_CYCLE_COMPARE   (0),
+                .TWO_CYCLE_ALU       (0),
+                .COMPRESSED_ISA      (0),
+                .CATCH_MISALIGN      (0),
+                .CATCH_ILLINSN       (0),
+                .ENABLE_PCPI         (0),
+                .ENABLE_MUL          (0),
+                .ENABLE_FAST_MUL     (0),
+                .ENABLE_DIV          (0),
+                .ENABLE_IRQ          (0),
+                .ENABLE_IRQ_QREGS    (0),
+                .ENABLE_IRQ_TIMER    (0),
+                .ENABLE_TRACE        (0),
+                .REGS_INIT_ZERO      (1)
+                //.MASKED_IRQ          (),
+                //.LATCHED_IRQ         (),
+                //.PROGADDR_RESET      (),
+                //.PROGADDR_IRQ        (),
+                //.STACKADDR           ()
+`endif
 	) uut (
 		.clk         (clk        ),
 		.resetn      (resetn     ),

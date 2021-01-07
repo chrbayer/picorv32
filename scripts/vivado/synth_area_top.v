@@ -1,3 +1,54 @@
+module top_rvnp (
+	input clk, resetn,
+
+	output        mem_valid,
+	output        mem_instr,
+	input         mem_ready,
+
+	output [31:0] mem_addr,
+	output [31:0] mem_wdata,
+	output [ 3:0] mem_wstrb,
+	input  [31:0] mem_rdata
+);
+	picorv32 #(
+                .ENABLE_COUNTERS     (0),//(1),
+                .ENABLE_COUNTERS64   (0),//(1),
+                .ENABLE_REGS_16_31   (1),//(1),
+                .ENABLE_REGS_DUALPORT(1),//(1),
+		.LATCHED_MEM_RDATA   (1),//(0),
+                .TWO_STAGE_SHIFT     (0),//(1),
+                .BARREL_SHIFTER      (0),//(0),
+                .TWO_CYCLE_COMPARE   (0),//(0),
+                .TWO_CYCLE_ALU       (0),//(0),
+                .COMPRESSED_ISA      (0),//(0),
+                .CATCH_MISALIGN      (0),//(1),
+                .CATCH_ILLINSN       (0),//(1),
+                .ENABLE_PCPI         (0),//(0),
+                .ENABLE_MUL          (0),//(0),
+                .ENABLE_FAST_MUL     (0),//(0),
+                .ENABLE_DIV          (0),//(0),
+                .ENABLE_IRQ          (0),//(0),
+                .ENABLE_IRQ_QREGS    (1),//(1),
+                .ENABLE_IRQ_TIMER    (1),//(1),
+                .ENABLE_TRACE        (0),//(0),
+                .REGS_INIT_ZERO      (0) //(0)
+                //.MASKED_IRQ          (),
+                //.LATCHED_IRQ         (),
+                //.PROGADDR_RESET      (),
+                //.PROGADDR_IRQ        (),
+                //.STACKADDR           ()
+	) picorv32 (
+		.clk      (clk      ),
+		.resetn   (resetn   ),
+		.mem_valid(mem_valid),
+		.mem_instr(mem_instr),
+		.mem_ready(mem_ready),
+		.mem_addr (mem_addr ),
+		.mem_wdata(mem_wdata),
+		.mem_wstrb(mem_wstrb),
+		.mem_rdata(mem_rdata)
+	);
+endmodule
 
 module top_small (
 	input clk, resetn,

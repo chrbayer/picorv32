@@ -54,6 +54,9 @@ test_synth: testbench_synth.vvp firmware/firmware.hex
 test_verilator: testbench_verilator firmware/firmware.hex
 	./testbench_verilator
 
+test_rvnp: testbench_ez.vvp_rvnp
+	$(VVP) -N $< +vcd
+
 testbench.vvp: testbench.v picorv32.v
 	$(IVERILOG) -o $@ $(subst C,-DCOMPRESSED_ISA,$(COMPRESSED_ISA)) $^
 	chmod -x $@
@@ -83,6 +86,10 @@ testbench_verilator: testbench.v picorv32.v testbench.cc
 			$(subst C,-DCOMPRESSED_ISA,$(COMPRESSED_ISA)) --Mdir testbench_verilator_dir
 	$(MAKE) -C testbench_verilator_dir -f Vpicorv32_wrapper.mk
 	cp testbench_verilator_dir/Vpicorv32_wrapper testbench_verilator
+
+testbench_ez.vvp_rvnp: testbench_ez.v picorv32.v
+	$(IVERILOG) -o $@ $(subst C,-DRVNP,-DCOMPRESSED_ISA,$(COMPRESSED_ISA)) $^
+	chmod -x $@
 
 check: check-yices
 
@@ -177,7 +184,7 @@ clean:
 		riscv-gnu-toolchain-riscv32im riscv-gnu-toolchain-riscv32imc
 	rm -vrf $(FIRMWARE_OBJS) $(TEST_OBJS) check.smt2 check.vcd synth.v synth.log \
 		firmware/firmware.elf firmware/firmware.bin firmware/firmware.hex firmware/firmware.map \
-		testbench.vvp testbench_sp.vvp testbench_synth.vvp testbench_ez.vvp \
+		testbench.vvp testbench_sp.vvp testbench_synth.vvp testbench_ez.vvp testbench_ez.vvp_rvnp \
 		testbench_rvf.vvp testbench_wb.vvp testbench.vcd testbench.trace \
 		testbench_verilator testbench_verilator_dir
 
