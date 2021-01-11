@@ -27,6 +27,7 @@ extern uint32_t sram;
 #define reg_leds (*(volatile uint32_t *)0x03000000)
 #define reg_new_pmod_leds (*(volatile uint32_t *)0x04000000)
 #define reg_gpio_3 (*(volatile uint32_t *)0x05000000)
+#define reg_mmio (*(volatile uint32_t *)0x06000000)
 
 // --------------------------------------------------------
 
@@ -50,6 +51,9 @@ void delay(unsigned long microseconds) {
 
 // The following is mapped to 0x05
 #define sense_led (1<<0)
+
+// These are for 0x06
+#define user_button (1<<0)
 
 void activity_indicator_red_on() {
 	reg_new_pmod_leds |= activity_red_led;
@@ -123,6 +127,10 @@ void all_leds_off() {
 	reg_leds = 0;
 	reg_new_pmod_leds = 0;
 	reg_gpio_3 = 0;
+}
+
+int read_sense_led(void) {
+	return reg_gpio_3;
 }
 
 void nonblocking_activity_indicator() {
@@ -246,8 +254,23 @@ void experiment_with_extremely_short_interval() {
 	}
 }
 
-void nonblocking_sense_and_report() {
-	report_led_on();
+void desperation() {
+	if (reg_mmio & 1) {
+		report_led_on();
+	}
+	else {
+		report_led_off();
+	}
+}
+
+// This worked!
+void monitor_activity_red_as_a_memory_location(void) {
+	if (reg_new_pmod_leds & activity_red_led) {
+		report_led_on();
+	}
+	else {
+		report_led_off();
+	}
 }
 
 void main() {
@@ -255,8 +278,11 @@ void main() {
 	while(1) {
 		nonblocking_activity_indicator();
 		// experiment_with_extremely_short_interval();
-		nonblocking_1s_counter();
+		// nonblocking_1s_counter();
 		// inbuilt_activity_indicator();
+		// nonblocking_sense_and_report();
+		// monitor_activity_red_as_a_memory_location();
+		desperation();
 	}
 }
 
