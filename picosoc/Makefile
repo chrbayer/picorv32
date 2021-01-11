@@ -14,7 +14,7 @@ vihw:
 	vi icebreaker.v
 
 commit:
-	git add icebreaker.v rjl_firmware.c Makefile
+	git add icebreaker.v rjl_firmware.c Makefile icebreaker.pcf
 	make clean
 	git commit
 	git pull
