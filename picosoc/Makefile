@@ -20,6 +20,9 @@ commit:
 	git pull
 	git push
 
+changes:
+	git diff
+
 # ---- iCE40 HX8K Breakout Board ----
 
 hx8ksim: hx8kdemo_tb.vvp hx8kdemo_fw.hex

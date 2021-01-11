@@ -42,6 +42,9 @@ void delay(unsigned long microseconds) {
 	}
 }
 
+// The following are mapped to 0x03
+#define red_break_off_pmod_led (1<<5)
+
 // The following are mapped to 0x04
 #define report_led (1<<0)
 #define activity_red_led (1<<1)
@@ -72,11 +75,11 @@ void activity_indicator_green_off() {
 }
 
 void report_led_on() {
-	reg_new_pmod_leds |= report_led;
+	reg_leds |= red_break_off_pmod_led;
 }
 
 void report_led_off() {
-	reg_new_pmod_leds &= ~report_led;
+	reg_leds &= ~red_break_off_pmod_led;
 }
 
 void sense_led_on() {

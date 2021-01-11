@@ -67,13 +67,11 @@ module icebreaker (
 
 	wire [7:0] leds;
 
-	// assign led1 = leds[1];
-	// assign led2 = leds[2];
+	assign led1 = leds[1];
+	assign led2 = leds[2];
 	assign led3 = leds[3];
 	assign led4 = leds[4];
 	assign led5 = leds[5];
-
-	assign button1 = led1;
 
 	assign ledr_n = !leds[6];
 	assign ledg_n = !leds[7];
@@ -128,13 +126,11 @@ module icebreaker (
 	  .D_IN_0(input_wire)
 	);
 
-	assign led2 = input_wire;
-
 	wire sense_wire;
 	assign sense_wire = sense_led;
 
 	always @(posedge clk) begin
-		if (!resetn) begin
+		if (!resetn | !input_wire) begin // add reset on user button
 			gpio <= 0;
 			other_gpio <= 0;
 			gpio_3 <= 0;
