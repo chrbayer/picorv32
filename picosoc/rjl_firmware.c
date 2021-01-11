@@ -254,6 +254,7 @@ void experiment_with_extremely_short_interval() {
 	}
 }
 
+// It works!
 void desperation() {
 	if (reg_mmio & 1) {
 		report_led_on();
@@ -273,6 +274,15 @@ void monitor_activity_red_as_a_memory_location(void) {
 	}
 }
 
+void sense_superbright_green_led() {
+	if (reg_mmio & 2) {
+		report_led_on();
+	}
+	else {
+		report_led_off();
+	}
+}
+
 void main() {
 	all_leds_off(0);
 	while(1) {
@@ -282,7 +292,8 @@ void main() {
 		// inbuilt_activity_indicator();
 		// nonblocking_sense_and_report();
 		// monitor_activity_red_as_a_memory_location();
-		desperation();
+		// desperation();
+		sense_superbright_green_led();
 	}
 }
 
