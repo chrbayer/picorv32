@@ -57,13 +57,11 @@ module icebreaker (
 	inout  flash_io3,
 
 	// raven
-	output [7:0] fp_gpio_out,
-	/*
-	input [7:0] fp_gpio_in,
-	output [7:0] fp_gpio_pullup,
-	output [7:0] fp_gpio_pulldown,
-	output [7:0] fp_gpio_outenb
-	*/
+	output [2:0] fp_gpio_out,
+	input [2:0] fp_gpio_in,
+	output [2:0] fp_gpio_pullup,
+	output [2:0] fp_gpio_pulldown,
+	output [2:0] fp_gpio_outenb
 );
 	parameter integer MEM_WORDS = 32768;
 
@@ -115,26 +113,24 @@ module icebreaker (
 
 	reg [31:0] gpio;
 	assign leds = gpio;
-
-	reg [31:0] other_gpio;
-	assign new_pmod_leds = other_gpio;
+	assign new_pmod_leds[0] = gpio[10];
+	assign new_pmod_leds[1] = gpio[11];
+	assign new_pmod_leds[2] = gpio[12];
 
 	reg[31:0] mmio;
 
 	// raven
-	wire[7:0] fp_gpio_pullup;
-	wire[7:0] fp_gpio_pulldown;
-	wire[7:0] fp_gpio_outenb;
+	wire[2:0] fp_gpio_pullup;
+	wire[2:0] fp_gpio_pulldown;
+	wire[2:0] fp_gpio_outenb;
 
 	// raven
-	/*
-	reg[7:0] fp_gpio;
-	reg[7:0] fp_gpio_pu;
-	reg[7:0] fp_gpio_pd;
-	reg[7:0] fp_gpio_oeb;
-	*/
+	reg[2:0] fp_gpio;
+	reg[2:0] fp_gpio_pu;
+	reg[2:0] fp_gpio_pd;
+	reg[2:0] fp_gpio_oeb;
 
-	// I'm not sure if this will work, but let's see if it compiles:
+	// This is for a reset switch.
 
 	wire input_wire;
 
@@ -151,24 +147,19 @@ module icebreaker (
 
 	// raven
 	assign fp_gpio_out = 0; // was 32'hcafebabe
-	/*
 	assign fp_gpio_pullup = 0;
 	assign fp_gpio_pulldown = 0;
 	assign fp_gpio_outenb = 0;
-	*/
 
 	always @(posedge clk) begin
 		if (!resetn | !input_wire) begin // add reset on user button
 			gpio <= 0;
-			other_gpio <= 0;
 			mmio <= 0;
 			// raven
-			/*
 			fp_gpio <= 0;
 			fp_gpio_pu <= 0;
 			fp_gpio_pd <= 0;
 			fp_gpio_oeb <= 0;
-			*/
 		end else begin
 			iomem_ready <= 0;
 			mmio[0] <= input_wire;
@@ -183,15 +174,6 @@ module icebreaker (
 						if (iomem_wstrb[1]) gpio[15: 8] <= iomem_wdata[15: 8];
 						if (iomem_wstrb[2]) gpio[23:16] <= iomem_wdata[23:16];
 						if (iomem_wstrb[3]) gpio[31:24] <= iomem_wdata[31:24];
-					end
-					8'h 04:
-					begin
-						iomem_ready <= 1;
-						iomem_rdata <= other_gpio;
-						if (iomem_wstrb[0]) other_gpio[ 7: 0] <= iomem_wdata[ 7: 0];
-						if (iomem_wstrb[1]) other_gpio[15: 8] <= iomem_wdata[15: 8];
-						if (iomem_wstrb[2]) other_gpio[23:16] <= iomem_wdata[23:16];
-						if (iomem_wstrb[3]) other_gpio[31:24] <= iomem_wdata[31:24];
 					end
 					8'h 06:
 					begin

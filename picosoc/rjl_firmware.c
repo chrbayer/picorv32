@@ -25,7 +25,6 @@
 extern uint32_t sram;
 
 #define reg_leds (*(volatile uint32_t *)0x03000000)
-#define reg_new_pmod_leds (*(volatile uint32_t *)0x04000000)
 #define reg_mmio (*(volatile uint32_t *)0x06000000)
 
 // --------------------------------------------------------
@@ -45,29 +44,26 @@ void delay(unsigned long microseconds) {
 #define red_break_off_pmod_led (1<<5)
 
 // The following are mapped to 0x04
-#define report_led (1<<0)
-#define activity_red_led (1<<1)
-#define activity_green_led (1<<2)
+#define report_led (1<<10)
+#define activity_red_led (1<<11)
+#define activity_green_led (1<<12)
 #define red_inbuilt_led (1<<6)
 #define green_inbuilt_led (1<<7)
 
-// These are for 0x06
-#define user_button (1<<0)
-
 void activity_indicator_red_on() {
-	reg_new_pmod_leds |= activity_red_led;
+	reg_leds |= activity_red_led;
 }
 
 void activity_indicator_green_on() {
-	reg_new_pmod_leds |= activity_green_led;
+	reg_leds |= activity_green_led;
 }
 
 void activity_indicator_red_off() {
-	reg_new_pmod_leds &= ~activity_red_led;
+	reg_leds &= ~activity_red_led;
 }
 
 void activity_indicator_green_off() {
-	reg_new_pmod_leds &= ~activity_green_led;
+	reg_leds &= ~activity_green_led;
 }
 
 void report_led_on() {
@@ -116,7 +112,6 @@ void inbuilt_activity_indicator_green() {
 
 void all_leds_off() {
 	reg_leds = 0;
-	reg_new_pmod_leds = 0;
 }
 
 void nonblocking_activity_indicator() {
@@ -252,7 +247,7 @@ void desperation() {
 
 // This worked!
 void monitor_activity_red_as_a_memory_location(void) {
-	if (reg_new_pmod_leds & activity_red_led) {
+	if (reg_leds & activity_red_led) {
 		report_led_on();
 	}
 	else {
