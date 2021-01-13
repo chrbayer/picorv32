@@ -26,7 +26,6 @@ extern uint32_t sram;
 
 #define reg_leds (*(volatile uint32_t *)0x03000000)
 #define reg_new_pmod_leds (*(volatile uint32_t *)0x04000000)
-#define reg_gpio_3 (*(volatile uint32_t *)0x05000000)
 #define reg_mmio (*(volatile uint32_t *)0x06000000)
 
 // --------------------------------------------------------
@@ -51,9 +50,6 @@ void delay(unsigned long microseconds) {
 #define activity_green_led (1<<2)
 #define red_inbuilt_led (1<<6)
 #define green_inbuilt_led (1<<7)
-
-// The following is mapped to 0x05
-#define sense_led (1<<0)
 
 // These are for 0x06
 #define user_button (1<<0)
@@ -80,14 +76,6 @@ void report_led_on() {
 
 void report_led_off() {
 	reg_leds &= ~red_break_off_pmod_led;
-}
-
-void sense_led_on() {
-	reg_gpio_3 |= sense_led;
-}
-
-void sense_led_off() {
-	reg_gpio_3 &= ~sense_led;
 }
 
 void activity_indicator_red() {
@@ -129,11 +117,6 @@ void inbuilt_activity_indicator_green() {
 void all_leds_off() {
 	reg_leds = 0;
 	reg_new_pmod_leds = 0;
-	reg_gpio_3 = 0;
-}
-
-int read_sense_led(void) {
-	return reg_gpio_3;
 }
 
 void nonblocking_activity_indicator() {
