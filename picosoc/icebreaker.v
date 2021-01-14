@@ -117,7 +117,7 @@ module icebreaker (
 	assign new_pmod_leds[1] = gpio[11];
 	assign new_pmod_leds[2] = gpio[12];
 
-	reg[31:0] mmio;
+	reg[15:0] mmio;
 
 	// raven
 	wire[2:0] fp_gpio_pullup;
@@ -181,8 +181,6 @@ module icebreaker (
 						iomem_rdata <= mmio;
 						if (iomem_wstrb[0]) mmio[ 7: 0] <= iomem_wdata[ 7: 0];
 						if (iomem_wstrb[1]) mmio[15: 8] <= iomem_wdata[15: 8];
-						if (iomem_wstrb[2]) mmio[23:16] <= iomem_wdata[23:16];
-						if (iomem_wstrb[3]) mmio[31:24] <= iomem_wdata[31:24];
 					end
 					// raven
 					/*
