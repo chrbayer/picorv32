@@ -57,11 +57,11 @@ module icebreaker (
 	inout  flash_io3,
 
 	// raven
-	output [2:0] fp_gpio_out,
-	input [2:0] fp_gpio_in,
-	output [2:0] fp_gpio_pullup,
-	output [2:0] fp_gpio_pulldown,
-	output [2:0] fp_gpio_outenb
+	output [1:0] fp_gpio_out,
+	input [1:0] fp_gpio_in,
+	output [1:0] fp_gpio_pullup,
+	output [1:0] fp_gpio_pulldown,
+	output [1:0] fp_gpio_outenb
 );
 	parameter integer MEM_WORDS = 32768;
 
@@ -120,15 +120,15 @@ module icebreaker (
 	reg[15:0] mmio;
 
 	// raven
-	wire[2:0] fp_gpio_pullup;
-	wire[2:0] fp_gpio_pulldown;
-	wire[2:0] fp_gpio_outenb;
+	wire[1:0] fp_gpio_pullup;
+	wire[1:0] fp_gpio_pulldown;
+	wire[1:0] fp_gpio_outenb;
 
 	// raven
-	reg[2:0] fp_gpio;
-	reg[2:0] fp_gpio_pu;
-	reg[2:0] fp_gpio_pd;
-	reg[2:0] fp_gpio_oeb;
+	reg[1:0] fp_gpio;
+	reg[1:0] fp_gpio_pu;
+	reg[1:0] fp_gpio_pd;
+	reg[1:0] fp_gpio_oeb;
 
 	// This is for a reset switch.
 
@@ -183,7 +183,6 @@ module icebreaker (
 						if (iomem_wstrb[1]) mmio[15: 8] <= iomem_wdata[15: 8];
 					end
 					// raven
-					/*
 					8'h 07:
 					begin
 						iomem_ready <= 1;
@@ -191,29 +190,28 @@ module icebreaker (
 							8'h 00:
 							begin
 								iomem_rdata <= {fp_gpio_out, fp_gpio_in};
-								if (iomem_wstrb[0]) fp_gpio[ 7: 0] <= iomem_wdata[ 1: 0];
+								if (iomem_wstrb[0]) fp_gpio[1:0] <= iomem_wdata[1:0];
 							end
 							8'h 04:
 							begin
 								iomem_rdata <= {8'd0, fp_gpio_oeb};
-								if (iomem_wstrb[0]) fp_gpio_oeb[ 7: 0] <= iomem_wdata[ 1: 0];
+								if (iomem_wstrb[0]) fp_gpio_oeb[1:0] <= iomem_wdata[1:0];
 							end
 							8'h 08:
 							begin
 								iomem_rdata <= {8'd0, fp_gpio_pu};
-								if (iomem_wstrb[0]) fp_gpio_pu[ 7: 0] <= iomem_wdata[ 1: 0];
+								if (iomem_wstrb[0]) fp_gpio_pu[1:0] <= iomem_wdata[1:0];
 							end
 							8'h 0c:
 							begin
 								iomem_rdata <= {8'd0, fp_gpio_pd};
-								if (iomem_wstrb[0]) fp_gpio_pd[ 7: 0] <= iomem_wdata[ 1: 0];
+								if (iomem_wstrb[0]) fp_gpio_pd[1:0] <= iomem_wdata[1:0];
 							end
 							default:
 							begin
 							end
 						endcase
 					end // raven
-					*/
 					default:
 					begin
 					end
