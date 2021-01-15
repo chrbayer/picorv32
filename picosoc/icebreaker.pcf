@@ -35,7 +35,7 @@ set_io activity_green	4
 
 # sense-and-report
 set_io sense_led	43
-set_io report_led	42
+set_io red_diffuse_led	42
 
 # user button
 set_io user_button	10

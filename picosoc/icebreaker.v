@@ -33,7 +33,7 @@ module icebreaker (
 	output led2,
 	output led3,
 	output led4,
-	output led5,
+	input led5,
 
 	output ledr_n,
 	output ledg_n,
@@ -42,7 +42,7 @@ module icebreaker (
 	output activity_green,
 
 	input sense_led,
-	output report_led,
+	output red_diffuse_led,
 	input user_button,
 
 	input button1,
@@ -78,14 +78,13 @@ module icebreaker (
 	assign led2 = leds[2];
 	assign led3 = leds[3];
 	assign led4 = leds[4];
-	assign led5 = leds[5];
 
 	assign ledr_n = !leds[6];
 	assign ledg_n = !leds[7];
 
 	wire [2:0] new_pmod_leds;
 
-	assign report_led = new_pmod_leds[0];
+	assign red_diffuse_led = new_pmod_leds[0];
 	assign activity_red = new_pmod_leds[1];
 	assign activity_green = new_pmod_leds[2];
 
@@ -113,11 +112,9 @@ module icebreaker (
 
 	reg [31:0] gpio;
 	assign leds = gpio;
+	assign new_pmod_leds[0] = gpio[10];
 	assign new_pmod_leds[1] = gpio[11];
 	assign new_pmod_leds[2] = gpio[12];
-
-	// raven
-	assign new_pmod_leds[0] = fp_gpio[0];
 
 	reg[15:0] mmio;
 
@@ -166,6 +163,7 @@ module icebreaker (
 			iomem_ready <= 0;
 			mmio[0] <= input_wire;
 			mmio[1] <= sense_wire;
+			mmio[2] <= led5;
 			if (iomem_valid && !iomem_ready) begin
 				case (iomem_addr[31:24])
 					8'h 03:

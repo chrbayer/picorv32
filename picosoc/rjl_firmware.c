@@ -46,20 +46,24 @@ void delay(unsigned long microseconds) {
 	}
 }
 
-// The following are mapped to 0x03
-#define red_break_off_pmod_led (1<<5)
+// The following are mapped to 0x03 (gpio)
+#define red_breakoff_pmod_led (1<<5)
 #define activity_red_led (1<<11)
 #define activity_green_led (1<<12)
 #define red_inbuilt_led (1<<6)
 #define green_inbuilt_led (1<<7)
 
-// The following are mapped to 0x06
+#define red_diffuse_led_reg reg_leds
+#define red_diffuse_led_bit (1<<10)
+
+// The following are mapped to 0x06 (mmio)
+// (the reset button is sensible on bit 0)
 #define green_superbright_led_reg reg_mmio
 #define green_superbright_led_bit (1<<1)
+#define red_breakoff_pmod_led_reg reg_mmio
+#define red_breakoff_pmod_led_bit (1<<2)
 
-// The following are mapped to 0x07
-#define red_diffuse_led_reg reg_fp_gpio_data
-#define red_diffuse_led_bit (1<<0)
+// The following are mapped to 0x07 (fp_gpio)
 
 void activity_indicator_red_on() {
 	reg_leds |= activity_red_led;
@@ -78,26 +82,11 @@ void activity_indicator_green_off() {
 }
 
 void report_led_on() {
-	reg_leds |= red_break_off_pmod_led;
-}
-
-void report_led_off() {
-	reg_leds &= ~red_break_off_pmod_led;
-}
-
-void red_diffuse_led_on() {
 	red_diffuse_led_reg |= red_diffuse_led_bit;
 }
 
-void red_diffuse_led_off() {
+void report_led_off() {
 	red_diffuse_led_reg &= ~red_diffuse_led_bit;
-}
-
-void flash_red_diffuse_led() {
-	red_diffuse_led_on();
-	delay(500000); // usec
-	red_diffuse_led_off();
-	delay(500000); // usec
 }
 
 void green_superbright_led_on() {
@@ -314,14 +303,17 @@ void sense_red_diffuse_led() {
 	}
 }
 
+void sense_red_breakoff_pmod_led() {
+	if (red_breakoff_pmod_led_reg & red_breakoff_pmod_led_bit) {
+		report_led_on();
+	}
+	else {
+		report_led_off();
+	}
+}
+
 void main() {
 	all_leds_off();
-	for (int i=0; i<3; i++) {
-		flash_red_diffuse_led();
-	}
-	for (int i=0; i<3; i++) {
-		flash_green_superbright_led();
-	}
 	while(1) {
 		nonblocking_activity_indicator();
 		// experiment_with_extremely_short_interval();
@@ -331,6 +323,7 @@ void main() {
 		// monitor_activity_red_as_a_memory_location();
 		// desperation();
 		sense_superbright_green_led();
+		sense_red_breakoff_pmod_led();
 	}
 }
 
