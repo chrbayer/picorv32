@@ -27,6 +27,12 @@ extern uint32_t sram;
 #define reg_leds (*(volatile uint32_t *)0x03000000)
 #define reg_mmio (*(volatile uint32_t *)0x06000000)
 
+// raven
+#define reg_fp_gpio_data (*(volatile uint32_t*)0x07000000)
+#define reg_fp_gpio_ena (*(volatile uint32_t*)0x07000004)
+#define reg_fp_gpio_pu (*(volatile uint32_t*)0x07000008)
+#define reg_fp_gpio_pd (*(volatile uint32_t*)0x0700000c)
+
 // --------------------------------------------------------
 
 void delay(unsigned long microseconds) {
@@ -34,7 +40,7 @@ void delay(unsigned long microseconds) {
 
 	uint32_t cycles_begin, cycles_now, cycles = 0;
 	__asm__ volatile ("rdcycle %0" : "=r"(cycles_begin));
-	while (cycles < 12000000) {
+	while (cycles < (uint32_t)delay) {
 		__asm__ volatile ("rdcycle %0" : "=r"(cycles_now));
 		cycles = cycles_now - cycles_begin;
 	}
@@ -42,13 +48,18 @@ void delay(unsigned long microseconds) {
 
 // The following are mapped to 0x03
 #define red_break_off_pmod_led (1<<5)
-
-// The following are mapped to 0x04
-#define report_led (1<<10)
 #define activity_red_led (1<<11)
 #define activity_green_led (1<<12)
 #define red_inbuilt_led (1<<6)
 #define green_inbuilt_led (1<<7)
+
+// The following are mapped to 0x06
+#define green_superbright_led_reg reg_mmio
+#define green_superbright_led_bit (1<<1)
+
+// The following are mapped to 0x07
+#define red_diffuse_led_reg reg_fp_gpio_data
+#define red_diffuse_led_bit (1<<0)
 
 void activity_indicator_red_on() {
 	reg_leds |= activity_red_led;
@@ -72,6 +83,36 @@ void report_led_on() {
 
 void report_led_off() {
 	reg_leds &= ~red_break_off_pmod_led;
+}
+
+void red_diffuse_led_on() {
+	red_diffuse_led_reg |= red_diffuse_led_bit;
+}
+
+void red_diffuse_led_off() {
+	red_diffuse_led_reg &= ~red_diffuse_led_bit;
+}
+
+void flash_red_diffuse_led() {
+	red_diffuse_led_on();
+	delay(500000); // usec
+	red_diffuse_led_off();
+	delay(500000); // usec
+}
+
+void green_superbright_led_on() {
+	green_superbright_led_reg |= green_superbright_led_bit;
+}
+
+void green_superbright_led_off() {
+	green_superbright_led_reg &= ~green_superbright_led_bit;
+}
+
+void flash_green_superbright_led() {
+	green_superbright_led_on();
+	delay(500000); // usec
+	green_superbright_led_off();
+	delay(500000); // usec
 }
 
 void activity_indicator_red() {
@@ -256,7 +297,16 @@ void monitor_activity_red_as_a_memory_location(void) {
 }
 
 void sense_superbright_green_led() {
-	if (reg_mmio & 2) {
+	if (green_superbright_led_reg & green_superbright_led_bit) {
+		report_led_on();
+	}
+	else {
+		report_led_off();
+	}
+}
+
+void sense_red_diffuse_led() {
+	if (red_diffuse_led_reg & red_diffuse_led_bit) {
 		report_led_on();
 	}
 	else {
@@ -265,7 +315,13 @@ void sense_superbright_green_led() {
 }
 
 void main() {
-	all_leds_off(0);
+	all_leds_off();
+	for (int i=0; i<3; i++) {
+		flash_red_diffuse_led();
+	}
+	for (int i=0; i<3; i++) {
+		flash_green_superbright_led();
+	}
 	while(1) {
 		nonblocking_activity_indicator();
 		// experiment_with_extremely_short_interval();

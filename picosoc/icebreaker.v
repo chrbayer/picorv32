@@ -113,9 +113,11 @@ module icebreaker (
 
 	reg [31:0] gpio;
 	assign leds = gpio;
-	assign new_pmod_leds[0] = gpio[10];
 	assign new_pmod_leds[1] = gpio[11];
 	assign new_pmod_leds[2] = gpio[12];
+
+	// raven
+	assign new_pmod_leds[0] = fp_gpio[0];
 
 	reg[15:0] mmio;
 
@@ -159,7 +161,7 @@ module icebreaker (
 			fp_gpio <= 0;
 			fp_gpio_pu <= 0;
 			fp_gpio_pd <= 0;
-			fp_gpio_oeb <= 0;
+			fp_gpio_oeb <= 2'b11; // default to input on reset
 		end else begin
 			iomem_ready <= 0;
 			mmio[0] <= input_wire;
@@ -187,22 +189,22 @@ module icebreaker (
 					begin
 						iomem_ready <= 1;
 						case (iomem_addr[7:0])
-							8'h 00:
+							8'h 00: // data
 							begin
 								iomem_rdata <= {fp_gpio_out, fp_gpio_in};
 								if (iomem_wstrb[0]) fp_gpio[1:0] <= iomem_wdata[1:0];
 							end
-							8'h 04:
+							8'h 04: // output enable
 							begin
 								iomem_rdata <= {8'd0, fp_gpio_oeb};
 								if (iomem_wstrb[0]) fp_gpio_oeb[1:0] <= iomem_wdata[1:0];
 							end
-							8'h 08:
+							8'h 08: // pullup
 							begin
 								iomem_rdata <= {8'd0, fp_gpio_pu};
 								if (iomem_wstrb[0]) fp_gpio_pu[1:0] <= iomem_wdata[1:0];
 							end
-							8'h 0c:
+							8'h 0c: // pulldown
 							begin
 								iomem_rdata <= {8'd0, fp_gpio_pd};
 								if (iomem_wstrb[0]) fp_gpio_pd[1:0] <= iomem_wdata[1:0];
