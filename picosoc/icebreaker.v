@@ -1,4 +1,4 @@
-/*
+/*;
  *  PicoSoC - A simple example SoC using PicoRV32
  *
  *  Copyright (C) 2017  Clifford Wolf <clifford@clifford.at>
@@ -23,13 +23,34 @@
 
 `define PICOSOC_MEM ice40up5k_spram
 
+module my_io (
+	input clock,
+	input direction,
+	input data_in,
+	output data_out,
+	inout io,
+	);
+
+	parameter WIDTH = 1;
+	reg a, b;
+
+	assign io = direction ? a : 1'bz;
+	assign data_out = b;
+
+	always @ (posedge clock)
+	begin
+		b <= io;
+		a <= data_in;
+	end
+endmodule
+
 module icebreaker (
 	input clk,
 
 	output ser_tx,
 	input ser_rx,
 
-	output led1,
+	inout led1, // currently used by mine
 	output led2,
 	output led3,
 	output led4,
@@ -42,6 +63,7 @@ module icebreaker (
 	output activity_green,
 
 	input sense_led,
+
 	output red_diffuse_led,
 	input user_button,
 
@@ -61,7 +83,7 @@ module icebreaker (
 	input [1:0] fp_gpio_in,
 	output [1:0] fp_gpio_pullup,
 	output [1:0] fp_gpio_pulldown,
-	output [1:0] fp_gpio_outenb
+	output [1:0] fp_gpio_outenb,
 );
 	parameter integer MEM_WORDS = 32768;
 
@@ -74,7 +96,8 @@ module icebreaker (
 
 	wire [7:0] leds;
 
-	assign led1 = leds[1];
+	// because it's being used by mine
+	// assign led1 = leds[1];
 	assign led2 = leds[2];
 	assign led3 = leds[3];
 	assign led4 = leds[4];
@@ -118,6 +141,9 @@ module icebreaker (
 
 	reg[15:0] mmio;
 
+	reg[1:0] mine;
+	// assign led1 = mine[1]; // need for output; avoids "led1 has no driver" warning
+
 	// raven
 	wire[1:0] fp_gpio_pullup;
 	wire[1:0] fp_gpio_pulldown;
@@ -134,11 +160,24 @@ module icebreaker (
 	wire input_wire;
 
 	SB_IO #(
-	  .PIN_TYPE(6'b0000_01),
-	  .PULLUP(1'b0)
+	  .PIN_TYPE(6'b 0000_01),
+	  .PULLUP(1'b 0)
 	) input_wire_conf (
 	  .PACKAGE_PIN(user_button),
 	  .D_IN_0(input_wire)
+	);
+
+	// mine
+	wire led1_wire_do, led1_wire_di;
+	reg led1_oe;
+	SB_IO #(
+	  .PIN_TYPE(6'b 1010_01),
+	  .PULLUP(1'b 0)
+	) try_to_sense_led1 (
+	  .PACKAGE_PIN(led1),
+	  .D_IN_0(led1_wire_di),
+		.OUTPUT_ENABLE(led1_oe),
+		.D_OUT_0(led1_wire_do),
 	);
 
 	wire sense_wire;
@@ -154,6 +193,8 @@ module icebreaker (
 		if (!resetn | !input_wire) begin // add reset on user button
 			gpio <= 0;
 			mmio <= 0;
+			mine <= 0;
+			led1_oe <= 0; // reset, it defaults to an input;
 			// raven
 			fp_gpio <= 0;
 			fp_gpio_pu <= 0;
@@ -164,6 +205,9 @@ module icebreaker (
 			mmio[0] <= input_wire;
 			mmio[1] <= sense_wire;
 			mmio[2] <= led5;
+
+			mine[0] <= sense_led;
+
 			if (iomem_valid && !iomem_ready) begin
 				case (iomem_addr[31:24])
 					8'h 03:
@@ -212,6 +256,22 @@ module icebreaker (
 							end
 						endcase
 					end // raven
+					// mine
+					8'h 08:
+					begin
+						iomem_ready <= 1;
+						iomem_rdata <= mine;
+						if (iomem_wstrb[0]) mine[0] <= iomem_wdata[0];
+					end
+					// mine
+					8'h 09:
+					begin
+						iomem_ready <= 1;
+						iomem_rdata[0] <= led1_oe;
+						iomem_rdata[1] <= led1_wire_di;
+						if (iomem_wstrb[0]) led1_oe <= iomem_wdata[0];
+						if (iomem_wstrb[0]) led1_wire_do <= iomem_wdata[1];
+					end
 					default:
 					begin
 					end

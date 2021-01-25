@@ -26,12 +26,22 @@ extern uint32_t sram;
 
 #define reg_leds (*(volatile uint32_t *)0x03000000)
 #define reg_mmio (*(volatile uint32_t *)0x06000000)
+#define reg_mine (*(volatile uint32_t *)0x08000000)
+#define reg_sbio (*(volatile uint32_t *)0x09000000)
 
 // raven
 #define reg_fp_gpio_data (*(volatile uint32_t*)0x07000000)
 #define reg_fp_gpio_ena (*(volatile uint32_t*)0x07000004)
 #define reg_fp_gpio_pu (*(volatile uint32_t*)0x07000008)
 #define reg_fp_gpio_pd (*(volatile uint32_t*)0x0700000c)
+
+// --------------------------------------------------------
+
+// fn prototypes
+void mine_led_on(void);
+void mine_led_off(void);
+void mine_1_led_1_on(void);
+void mine_1_led_1_off(void);
 
 // --------------------------------------------------------
 
@@ -64,6 +74,16 @@ void delay(unsigned long microseconds) {
 #define red_breakoff_pmod_led_bit (1<<2)
 
 // The following are mapped to 0x07 (fp_gpio)
+
+// The following are mapped to 0x08 (mine)
+#define mine_reg reg_mine
+#define mine_bit (1<<0)
+#define mine_1_led_1_bit (1<<1)
+
+// The following are mapped to 0x09 (sbio)
+#define sbio_reg reg_sbio
+#define sbio_oe_bit (1<<0)
+#define sbio_led1_bit (1<<1)
 
 void activity_indicator_red_on() {
 	reg_leds |= activity_red_led;
@@ -167,6 +187,35 @@ void nonblocking_activity_indicator() {
 				break;
 			default:
 				state = red;
+				break;
+		}
+		time_of_last_state_change = now;
+	}
+}
+
+void nonblocking_mine_1_led_1() {
+	static enum states {off, on, invalid_state} state = off;
+	static uint32_t time_of_last_state_change = 0;
+	const unsigned int period = 12000000; // 12 000 000 per second
+	uint32_t now;
+
+	// The cycle counter is only 32 bits and ticks 12 million
+	// times a second, so expect it to roll over about every
+	// five minutes. That's acceptable, for now.
+
+	__asm__ volatile ("rdcycle %0" : "=r"(now));
+	if (now - time_of_last_state_change > period) {
+		switch(state) {
+			case off:
+				mine_1_led_1_on();
+				state = on;
+				break;
+			case on:
+				mine_1_led_1_off();
+				state = off;
+				break;
+			default:
+				state = on;
 				break;
 		}
 		time_of_last_state_change = now;
@@ -312,8 +361,72 @@ void sense_red_breakoff_pmod_led() {
 	}
 }
 
+void sense_mine() {
+	if (mine_reg & mine_bit) {
+		report_led_on();
+	}
+	else {
+		report_led_off();
+	}
+}
+
+void sense_led1_on_mine_1() {
+	if (mine_reg & mine_1_led_1_bit) {
+		report_led_on();
+	}
+	else {
+		report_led_off();
+	}
+}
+
+void mine_led_on() {
+	mine_reg |= mine_bit;
+}
+
+void mine_led_off() {
+	mine_reg &= ~mine_bit;
+}
+
+void mine_1_led_1_on() {
+	mine_reg |= mine_1_led_1_bit;
+}
+
+void mine_1_led_1_off() {
+	mine_reg &= ~mine_1_led_1_bit;
+}
+
+void configure_sbio_led1_to_be_input() {
+	sbio_reg &= ~sbio_oe_bit;
+}
+
+void configure_sbio_led1_to_be_output() {
+	sbio_reg |= sbio_oe_bit;
+}
+
+void sbio_led1_on() {
+	sbio_reg |= sbio_led1_bit;
+}
+
+void sbio_led1_off() {
+	sbio_reg &= ~sbio_led1_bit;
+}
+
+void sense_sbio_led1() {
+	if (sbio_reg & sbio_led1_bit) {
+		report_led_on();
+	}
+	else {
+		report_led_off();
+	}
+}
+
 void main() {
 	all_leds_off();
+	configure_sbio_led1_to_be_output();
+	sbio_led1_on();
+	delay(500000);
+	sbio_led1_off();
+	configure_sbio_led1_to_be_input();
 	while(1) {
 		nonblocking_activity_indicator();
 		// experiment_with_extremely_short_interval();
@@ -322,8 +435,11 @@ void main() {
 		// nonblocking_sense_and_report();
 		// monitor_activity_red_as_a_memory_location();
 		// desperation();
-		sense_superbright_green_led();
-		sense_red_breakoff_pmod_led();
+		// sense_superbright_green_led();
+		// sense_red_breakoff_pmod_led();
+		sense_mine();
+		// nonblocking_mine_1_led_1();
+		sense_sbio_led1();
 	}
 }
 

@@ -6,6 +6,8 @@ all: rjl_fw
 
 all_plus_hw: rjlprog
 
+2: rjlprog
+
 vi:
 	vi rjl_firmware.c
 
