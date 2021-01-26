@@ -42,6 +42,7 @@ void mine_led_on(void);
 void mine_led_off(void);
 void mine_1_led_1_on(void);
 void mine_1_led_1_off(void);
+void busy_wait(void);
 
 // --------------------------------------------------------
 
@@ -54,6 +55,10 @@ void delay(unsigned long microseconds) {
 		__asm__ volatile ("rdcycle %0" : "=r"(cycles_now));
 		cycles = cycles_now - cycles_begin;
 	}
+}
+
+void busy_wait(void) {
+	for (volatile unsigned long i=0; i<15000; i++) ;
 }
 
 // The following are mapped to 0x03 (gpio)
@@ -190,6 +195,39 @@ void nonblocking_activity_indicator() {
 				break;
 		}
 		time_of_last_state_change = now;
+	}
+}
+
+void quick_and_dirty_1s_delay(void) {
+	static uint32_t time_of_last_state_change = 0;
+	uint32_t now;
+
+	__asm__ volatile("rdcycle %0" : "=r"(now));
+	while (now - time_of_last_state_change <= 20000000) {
+		__asm__ volatile("nop");
+		__asm__ volatile("rdcycle %0" : "=r"(now));
+	}
+}
+
+void qd_1s_delay(void) {
+	static uint32_t time_of_last_state_change = 0;
+	uint32_t now;
+
+	__asm__ volatile("rdcycle %0" : "=r"(now));
+	while (now - time_of_last_state_change <= 30000000) {
+		__asm__ volatile("nop");
+		__asm__ volatile("rdcycle %0" : "=r"(now));
+	}
+}
+
+void qd_1s(void) {
+	static uint32_t time_of_last_state_change = 0;
+	uint32_t now;
+
+	__asm__ volatile("rdcycle %0" : "=r"(now));
+	while (now - time_of_last_state_change <= 40000000) {
+		__asm__ volatile("nop");
+		__asm__ volatile("rdcycle %0" : "=r"(now));
 	}
 }
 
@@ -420,12 +458,49 @@ void sense_sbio_led1() {
 	}
 }
 
+void flash_report_led(unsigned int how_many_times) {
+	for (int i=0; i<how_many_times; i++) {
+		report_led_on();
+		for (volatile int j=0; j<5000; j++) ;
+		report_led_off();
+		for (volatile int j=0; j<5000; j++) ;
+	}
+}
+
+void flash_sbio_led1(unsigned int how_many_times) {
+	for (int i=0; i<how_many_times; i++) {
+		sbio_led1_on();
+		for (volatile int j=0; j<5000; j++) ;
+		sbio_led1_off();
+		for (volatile int j=0; j<5000; j++) ;
+	}
+}
+
+void read_sbio_oe_and_report() {
+	if (sbio_reg & sbio_oe_bit) {
+		flash_report_led(3);
+	}
+	else {
+		flash_report_led(2);
+	}
+	busy_wait();
+}
+
 void main() {
 	all_leds_off();
+	for (int i=0; i<3; i++) {
+		report_led_on();
+		busy_wait();
+		report_led_off();
+		busy_wait();
+	}
 	configure_sbio_led1_to_be_output();
-	sbio_led1_on();
-	delay(500000);
-	sbio_led1_off();
+	read_sbio_oe_and_report();
+	flash_sbio_led1(2);
+	busy_wait();
+	configure_sbio_led1_to_be_input();
+	read_sbio_oe_and_report();
+	busy_wait();
 	configure_sbio_led1_to_be_input();
 	while(1) {
 		nonblocking_activity_indicator();
