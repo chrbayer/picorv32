@@ -519,7 +519,7 @@ void cmd_benchmark_all()
 	print(": ");
 	print_hex(cmd_benchmark(false, &instns), 8);
 	putchar('\n');
-
+#if 0
 	for (int i = 8; i > 0; i--)
 	{
 		print("dspi-");
@@ -603,7 +603,7 @@ void cmd_benchmark_all()
 		print_hex(cmd_benchmark(false, &instns), 8);
 		putchar('\n');
 	}
-
+#endif
 	print("instns         : ");
 	print_hex(instns, 8);
 	putchar('\n');
@@ -649,7 +649,6 @@ void cmd_benchmark_all()
 	enable_flash_crm();
 	print_hex(cmd_benchmark(false, &instns), 8);
 	putchar('\n');
-
 }
 #endif
 
@@ -703,10 +702,10 @@ void main()
 		print("   [1] Read SPI Flash ID\n");
 		print("   [2] Read SPI Config Regs\n");
 		print("   [3] Switch to default mode\n");
-		print("   [4] Switch to Dual I/O mode\n");
-		print("   [5] Switch to Quad I/O mode\n");
-		print("   [6] Switch to Quad DDR mode\n");
-		print("   [7] Toggle continuous read mode\n");
+		//print("   [4] Switch to Dual I/O mode\n");
+		//print("   [5] Switch to Quad I/O mode\n");
+		//print("   [6] Switch to Quad DDR mode\n");
+		//print("   [7] Toggle continuous read mode\n");
 		print("   [9] Run simplistic benchmark\n");
 		print("   [0] Benchmark all configs\n");
 		print("   [M] Run Memtest\n");
@@ -733,6 +732,7 @@ void main()
 			case '3':
 				set_flash_mode_spi();
 				break;
+#if 0
 			case '4':
 				set_flash_mode_dual();
 				break;
@@ -745,6 +745,7 @@ void main()
 			case '7':
 				reg_spictrl = reg_spictrl ^ 0x00100000;
 				break;
+#endif
 			case '9':
 				cmd_benchmark(true, 0);
 				break;
