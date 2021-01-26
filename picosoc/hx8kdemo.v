@@ -30,22 +30,21 @@ module hx8kdemo (
 	inout  flash_io0,
 	inout  flash_io1,
 	inout  flash_io2,
-	inout  flash_io3,
-
-	output debug_ser_tx,
-	output debug_ser_rx,
-
-	output debug_flash_csb,
-	output debug_flash_clk,
-	output debug_flash_io0,
-	output debug_flash_io1,
-	output debug_flash_io2,
-	output debug_flash_io3
+	inout  flash_io3
 );
-	reg [5:0] reset_cnt = 0;
-	wire resetn = &reset_cnt;
 
-	always @(posedge clk) begin
+	wire clk_pll, locked;
+
+	pll pll (
+		.clock_in (clk),
+		.clock_out(clk_pll),
+		.locked   (locked)
+	);
+
+	reg [5:0] reset_cnt = 0;
+	wire resetn = &reset_cnt & locked;
+
+	always @(posedge clk_pll) begin
 		reset_cnt <= reset_cnt + !resetn;
 	end
 
@@ -74,7 +73,7 @@ module hx8kdemo (
 	reg [31:0] gpio;
 	assign leds = gpio;
 
-	always @(posedge clk) begin
+	always @(posedge clk_pll) begin
 		if (!resetn) begin
 			gpio <= 0;
 		end else begin
@@ -91,7 +90,7 @@ module hx8kdemo (
 	end
 
 	picosoc soc (
-		.clk          (clk         ),
+		.clk          (clk_pll     ),
 		.resetn       (resetn      ),
 
 		.ser_tx       (ser_tx      ),
@@ -127,13 +126,4 @@ module hx8kdemo (
 		.iomem_rdata  (iomem_rdata )
 	);
 
-	assign debug_ser_tx = ser_tx;
-	assign debug_ser_rx = ser_rx;
-
-	assign debug_flash_csb = flash_csb;
-	assign debug_flash_clk = flash_clk;
-	assign debug_flash_io0 = flash_io0_di;
-	assign debug_flash_io1 = flash_io1_di;
-	assign debug_flash_io2 = flash_io2_di;
-	assign debug_flash_io3 = flash_io3_di;
 endmodule
