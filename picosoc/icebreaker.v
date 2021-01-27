@@ -172,12 +172,12 @@ module icebreaker (
 	reg led1_oe;
 	SB_IO #(
 	  .PIN_TYPE(6'b 1010_01),
-	  .PULLUP(1'b 0)
+	  .PULLUP(1'b 0) // This turns pullup off.
 	) try_to_sense_led1 (
 	  .PACKAGE_PIN(led1),
-	  .D_IN_0(led1_wire_di),
+	  .D_IN_0(led1_wire_di), // 0 means rising clock edge
 		.OUTPUT_ENABLE(led1_oe),
-		.D_OUT_0(led1_wire_do),
+		.D_OUT_0(led1_wire_do), // 0 means rising clock edge
 	);
 
 	wire sense_wire;
