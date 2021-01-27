@@ -23,10 +23,10 @@ hx8kdemo_syn.v: hx8kdemo.blif
 	yosys -p 'read_blif -wideports hx8kdemo.blif; write_verilog hx8kdemo_syn.v'
 
 hx8kdemo.asc: hx8kdemo.pcf hx8kdemo.blif
-	nextpnr-ice40 --freq 22 --hx8k --package cb132 --asc hx8kdemo.asc --pcf hx8kdemo.pcf --json hx8kdemo.json
+	nextpnr-ice40 --freq 16 --hx8k --package cb132 --asc hx8kdemo.asc --pcf hx8kdemo.pcf --json hx8kdemo.json
 
 hx8kdemo.bin: hx8kdemo.asc
-	icetime -d hx8k -c 22 -mtr hx8kdemo.rpt hx8kdemo.asc
+	icetime -d hx8k -c 16 -mtr hx8kdemo.rpt hx8kdemo.asc
 	icepack hx8kdemo.asc hx8kdemo.bin
 
 hx8kprog: hx8kdemo.bin hx8kdemo_fw.bin
