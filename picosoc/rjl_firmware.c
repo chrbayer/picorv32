@@ -67,9 +67,16 @@ void busy_wait(void) {
 #define activity_green_led (1<<12)
 #define red_inbuilt_led (1<<6)
 #define green_inbuilt_led (1<<7)
+#define led1 (1<<1)
+#define led2 (1<<2)
+#define led3 (1<<3)
+#define led4 (1<<4)
+#define led5 (1<<5)
 
 #define red_diffuse_led_reg reg_leds
 #define red_diffuse_led_bit (1<<10)
+#define led2_reg reg_leds
+#define led2_bit led2
 
 // The following are mapped to 0x06 (mmio)
 // (the reset button is sensible on bit 0)
@@ -112,6 +119,14 @@ void report_led_on() {
 
 void report_led_off() {
 	red_diffuse_led_reg &= ~red_diffuse_led_bit;
+}
+
+void led2_on() {
+	led2_reg |= led2_bit;
+}
+
+void led2_off() {
+	led2_reg &= ~led2_bit;
 }
 
 void green_superbright_led_on() {
@@ -451,10 +466,10 @@ void sbio_led1_off() {
 
 void sense_sbio_led1() {
 	if (sbio_reg & sbio_led1_bit) {
-		report_led_on();
+		led2_on();
 	}
 	else {
-		report_led_off();
+		led2_off();
 	}
 }
 
@@ -486,8 +501,101 @@ void read_sbio_oe_and_report() {
 	busy_wait();
 }
 
+void led1_on() {
+	reg_leds |= led1;
+}
+
+void led1_off() {
+	reg_leds &= ~led1;
+}
+
+// led2 already defined above
+
+void led3_on() {
+	reg_leds |= led3;
+}
+
+void led3_off() {
+	reg_leds &= ~led3;
+}
+
+void led4_on() {
+	reg_leds |= led4;
+}
+
+void led4_off() {
+	reg_leds &= ~led4;
+}
+
+void led5_on() {
+	reg_leds |= led5;
+}
+
+void led5_off() {
+	reg_leds &= ~led5;
+}
+
+void flash_led1(int n) {
+	for (int i=0; i<n; i++) {
+		led1_on();
+		for (volatile int j=0; j<5000; j++) ;
+		led1_off();
+		for (volatile int j=0; j<5000; j++) ;
+	}
+}
+
+void flash_led2(int n) {
+	for (int i=0; i<n; i++) {
+		led2_on();
+		for (volatile int j=0; j<5000; j++) ;
+		led2_off();
+		for (volatile int j=0; j<5000; j++) ;
+	}
+}
+
+void flash_led3(int n) {
+	for (int i=0; i<n; i++) {
+		led3_on();
+		for (volatile int j=0; j<5000; j++) ;
+		led3_off();
+		for (volatile int j=0; j<5000; j++) ;
+	}
+}
+
+void flash_led4(int n) {
+	for (int i=0; i<n; i++) {
+		led4_on();
+		for (volatile int j=0; j<5000; j++) ;
+		led4_off();
+		for (volatile int j=0; j<5000; j++) ;
+	}
+}
+
+void flash_led5(int n) {
+	for (int i=0; i<n; i++) {
+		led5_on();
+		for (volatile int j=0; j<5000; j++) ;
+		led5_off();
+		for (volatile int j=0; j<5000; j++) ;
+	}
+}
+
+void identify_leds() {
+	flash_led1(1);
+	busy_wait();
+	flash_led2(2);
+	busy_wait();
+	flash_led3(3);
+	busy_wait();
+	flash_led4(4);
+	busy_wait();
+	flash_led5(5);
+	busy_wait();
+}
+
 void main() {
 	all_leds_off();
+	identify_leds();
 	for (int i=0; i<3; i++) {
 		report_led_on();
 		busy_wait();
