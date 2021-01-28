@@ -43,7 +43,7 @@ module testbench;
 		cycle_cnt <= cycle_cnt + 1;
 	end
 
-	wire [7:0] leds;
+	wire [31:0] leds;
 
 	wire ser_rx;
 	wire ser_tx;

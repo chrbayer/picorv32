@@ -15,12 +15,39 @@ set_io flash_io3 P3
 set_io ser_tx M9
 set_io ser_rx P14
 
-set_io leds[7] N14  # D9
-set_io leds[6] M12  # D8
-set_io leds[5] L14  # D7
-set_io leds[4] L12  # D6
-set_io leds[3] K14  # D5
-set_io leds[2] K12  # D4
-set_io leds[1] K11  # D3
-set_io leds[0] J11  # D2
+set_io leds[31] E1
+set_io leds[30] D1
+set_io leds[29] C1
+set_io leds[28] B1
+set_io leds[27] D3
+set_io leds[26] C3
+set_io leds[25] A1
+set_io leds[24] A2
+
+set_io leds[23] A3
+set_io leds[22] A4
+set_io leds[21] A6
+set_io leds[20] A7
+set_io leds[19] A10
+set_io leds[18] A11
+set_io leds[17] C9
+set_io leds[16] C10
+
+set_io leds[15] A12
+set_io leds[14] B14
+set_io leds[13] C14
+set_io leds[12] D14
+set_io leds[11] E14
+set_io leds[10] E12
+set_io leds[9] F14
+set_io leds[8] G14
+
+set_io leds[7] N14
+set_io leds[6] M12
+set_io leds[5] L14
+set_io leds[4] L12
+set_io leds[3] K14
+set_io leds[2] K12
+set_io leds[1] K11
+set_io leds[0] J11
 

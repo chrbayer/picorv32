@@ -23,7 +23,7 @@ module hx8kdemo (
 	output ser_tx,
 	input ser_rx,
 
-	output [7:0] leds,
+	output [31:0] leds,
 
 	output flash_csb,
 	output flash_clk,
