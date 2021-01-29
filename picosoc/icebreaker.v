@@ -54,7 +54,7 @@ module icebreaker (
 	output led2,
 	output led3,
 	output led4,
-	input led5,
+	output led5,
 
 	output ledr_n,
 	output ledg_n,
@@ -94,6 +94,7 @@ module icebreaker (
 	assign led2 = leds[2];
 	assign led3 = leds[3];
 	assign led4 = leds[4];
+	assign led5 = leds[5];
 
 	assign ledr_n = !leds[6];
 	assign ledg_n = !leds[7];
@@ -175,7 +176,6 @@ module icebreaker (
 			iomem_ready <= 0;
 			mmio[0] <= input_wire;
 			mmio[1] <= sense_wire;
-			mmio[2] <= led5;
 
 			mine[0] <= sense_led;
 

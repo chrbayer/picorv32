@@ -527,11 +527,12 @@ void led5_off() {
 	reg_leds &= ~led5;
 }
 
-void flash_led1(int n) {
+void flash_my_led1(int n) {
+	configure_sbio_led1_to_be_output();
 	for (int i=0; i<n; i++) {
-		led1_on();
+		sbio_led1_on();
 		for (volatile int j=0; j<5000; j++) ;
-		led1_off();
+		sbio_led1_off();
 		for (volatile int j=0; j<5000; j++) ;
 	}
 }
@@ -573,7 +574,7 @@ void flash_led5(int n) {
 }
 
 void identify_leds() {
-	flash_led1(1);
+	flash_my_led1(1);
 	busy_wait();
 	flash_led2(2);
 	busy_wait();
