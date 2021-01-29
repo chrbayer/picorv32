@@ -29,12 +29,6 @@ extern uint32_t sram;
 #define reg_mine (*(volatile uint32_t *)0x08000000)
 #define reg_sbio (*(volatile uint32_t *)0x09000000)
 
-// raven
-#define reg_fp_gpio_data (*(volatile uint32_t*)0x07000000)
-#define reg_fp_gpio_ena (*(volatile uint32_t*)0x07000004)
-#define reg_fp_gpio_pu (*(volatile uint32_t*)0x07000008)
-#define reg_fp_gpio_pd (*(volatile uint32_t*)0x0700000c)
-
 // --------------------------------------------------------
 
 // fn prototypes
@@ -84,8 +78,6 @@ void busy_wait(void) {
 #define green_superbright_led_bit (1<<1)
 #define red_breakoff_pmod_led_reg reg_mmio
 #define red_breakoff_pmod_led_bit (1<<2)
-
-// The following are mapped to 0x07 (fp_gpio)
 
 // The following are mapped to 0x08 (mine)
 #define mine_reg reg_mine

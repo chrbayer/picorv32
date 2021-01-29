@@ -77,13 +77,6 @@ module icebreaker (
 	inout  flash_io1,
 	inout  flash_io2,
 	inout  flash_io3,
-
-	// raven
-	output [1:0] fp_gpio_out,
-	input [1:0] fp_gpio_in,
-	output [1:0] fp_gpio_pullup,
-	output [1:0] fp_gpio_pulldown,
-	output [1:0] fp_gpio_outenb,
 );
 	parameter integer MEM_WORDS = 32768;
 
@@ -144,17 +137,6 @@ module icebreaker (
 	reg[1:0] mine;
 	// assign led1 = mine[1]; // need for output; avoids "led1 has no driver" warning
 
-	// raven
-	wire[1:0] fp_gpio_pullup;
-	wire[1:0] fp_gpio_pulldown;
-	wire[1:0] fp_gpio_outenb;
-
-	// raven
-	reg[1:0] fp_gpio;
-	reg[1:0] fp_gpio_pu;
-	reg[1:0] fp_gpio_pd;
-	reg[1:0] fp_gpio_oeb;
-
 	// This is for a reset switch.
 
 	wire input_wire;
@@ -183,23 +165,12 @@ module icebreaker (
 	wire sense_wire;
 	assign sense_wire = sense_led;
 
-	// raven
-	assign fp_gpio_out = 0; // was 32'hcafebabe
-	assign fp_gpio_pullup = 0;
-	assign fp_gpio_pulldown = 0;
-	assign fp_gpio_outenb = 0;
-
 	always @(posedge clk) begin
 		if (!resetn | !input_wire) begin // add reset on user button
 			gpio <= 0;
 			mmio <= 0;
 			mine <= 0;
 			led1_oe <= 0; // reset, it defaults to an input;
-			// raven
-			fp_gpio <= 0;
-			fp_gpio_pu <= 0;
-			fp_gpio_pd <= 0;
-			fp_gpio_oeb <= 2'b11; // default to input on reset
 		end else begin
 			iomem_ready <= 0;
 			mmio[0] <= input_wire;
@@ -226,36 +197,6 @@ module icebreaker (
 						if (iomem_wstrb[0]) mmio[ 7: 0] <= iomem_wdata[ 7: 0];
 						if (iomem_wstrb[1]) mmio[15: 8] <= iomem_wdata[15: 8];
 					end
-					// raven
-					8'h 07:
-					begin
-						iomem_ready <= 1;
-						case (iomem_addr[7:0])
-							8'h 00: // data
-							begin
-								iomem_rdata <= {fp_gpio_out, fp_gpio_in};
-								if (iomem_wstrb[0]) fp_gpio[1:0] <= iomem_wdata[1:0];
-							end
-							8'h 04: // output enable
-							begin
-								iomem_rdata <= {8'd0, fp_gpio_oeb};
-								if (iomem_wstrb[0]) fp_gpio_oeb[1:0] <= iomem_wdata[1:0];
-							end
-							8'h 08: // pullup
-							begin
-								iomem_rdata <= {8'd0, fp_gpio_pu};
-								if (iomem_wstrb[0]) fp_gpio_pu[1:0] <= iomem_wdata[1:0];
-							end
-							8'h 0c: // pulldown
-							begin
-								iomem_rdata <= {8'd0, fp_gpio_pd};
-								if (iomem_wstrb[0]) fp_gpio_pd[1:0] <= iomem_wdata[1:0];
-							end
-							default:
-							begin
-							end
-						endcase
-					end // raven
 					// mine
 					8'h 08:
 					begin
