@@ -36,6 +36,7 @@ extern uint32_t sram;
 #define reg_uart_clkdiv (*(volatile uint32_t*)0x02000004)
 #define reg_uart_data (*(volatile uint32_t*)0x02000008)
 #define reg_leds (*(volatile uint32_t*)0x03000000)
+#define reg_segs (*(volatile uint32_t*)0x03000004)
 
 // --------------------------------------------------------
 
@@ -225,6 +226,7 @@ char getchar_prompt(char *prompt)
 	__asm__ volatile ("rdcycle %0" : "=r"(cycles_begin));
 
 	reg_leds = ~0;
+	reg_segs = 0;
 
 	if (prompt)
 		print(prompt);
@@ -237,11 +239,13 @@ char getchar_prompt(char *prompt)
 				print(prompt);
 			cycles_begin = cycles_now;
 			reg_leds = ~reg_leds;
+			reg_segs = ~reg_segs;
 		}
 		c = reg_uart_data;
 	}
 
 	reg_leds = 0;
+	reg_segs = ~0;
 	return c;
 }
 

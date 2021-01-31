@@ -24,6 +24,7 @@ module hx8kdemo (
 	input ser_rx,
 
 	output [31:0] leds,
+	output [11:0] segs,
 
 	output flash_csb,
 	output flash_clk,
@@ -70,21 +71,26 @@ module hx8kdemo (
 	wire [31:0] iomem_wdata;
 	reg  [31:0] iomem_rdata;
 
-	reg [31:0] gpio;
-	assign leds = gpio;
+	reg [31:0] gpio [1:0];
+	assign leds = gpio[0];
+	assign segs = gpio[1];
+
+	integer idx;
 
 	always @(posedge clk_pll) begin
 		if (!resetn) begin
-			gpio <= 0;
+			gpio[0] <= 0;
+			gpio[1] <= 0;
 		end else begin
 			iomem_ready <= 0;
+			idx = iomem_addr[7:0] / 4;
 			if (iomem_valid && !iomem_ready && iomem_addr[31:24] == 8'h 03) begin
 				iomem_ready <= 1;
-				iomem_rdata <= gpio;
-				if (iomem_wstrb[0]) gpio[ 7: 0] <= iomem_wdata[ 7: 0];
-				if (iomem_wstrb[1]) gpio[15: 8] <= iomem_wdata[15: 8];
-				if (iomem_wstrb[2]) gpio[23:16] <= iomem_wdata[23:16];
-				if (iomem_wstrb[3]) gpio[31:24] <= iomem_wdata[31:24];
+				iomem_rdata <= gpio[idx];
+				if (iomem_wstrb[0]) gpio[idx][ 7: 0] <= iomem_wdata[ 7: 0];
+				if (iomem_wstrb[1]) gpio[idx][15: 8] <= iomem_wdata[15: 8];
+				if (iomem_wstrb[2]) gpio[idx][23:16] <= iomem_wdata[23:16];
+				if (iomem_wstrb[3]) gpio[idx][31:24] <= iomem_wdata[31:24];
 			end
 		end
 	end

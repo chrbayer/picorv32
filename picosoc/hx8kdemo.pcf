@@ -15,6 +15,20 @@ set_io flash_io3 P3
 set_io ser_tx M9
 set_io ser_rx P14
 
+set_io segs[0]   J1
+set_io segs[1]   J3
+set_io segs[2]   N1
+set_io segs[3]   K4
+set_io segs[4]   K3
+set_io segs[5]   L1
+set_io segs[6]   M1
+set_io segs[7]   P1
+
+set_io segs[8]   H3
+set_io segs[9]   H1
+set_io segs[10]  G1
+set_io segs[11]  G3
+
 set_io leds[31] E1
 set_io leds[30] D1
 set_io leds[29] C1
