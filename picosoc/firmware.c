@@ -38,6 +38,17 @@ extern uint32_t sram;
 #define reg_leds (*(volatile uint32_t*)0x03000000)
 #define reg_segs (*(volatile uint32_t*)0x03000004)
 
+#define SEG_A	1<<0
+#define SEG_B	1<<1
+#define SEG_C	1<<2
+#define SEG_D	1<<3
+#define SEG_E	1<<4
+#define SEG_F	1<<5
+#define SEG_G	1<<6
+#define SEG_DP	1<<7
+
+#define DIGIT_0 (SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F)
+
 // --------------------------------------------------------
 
 extern uint32_t flashio_worker_begin;
@@ -226,7 +237,7 @@ char getchar_prompt(char *prompt)
 	__asm__ volatile ("rdcycle %0" : "=r"(cycles_begin));
 
 	reg_leds = ~0;
-	reg_segs = 0;
+	reg_segs = ~DIGIT_0 & 0xff;
 
 	if (prompt)
 		print(prompt);
