@@ -47,7 +47,29 @@ extern uint32_t sram;
 #define SEG_G	1<<6
 #define SEG_DP	1<<7
 
-#define DIGIT_0 (SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F)
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
+
+static unsigned int digits[] = {
+	[0] = (SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F),
+	[1] = (SEG_B | SEG_C),
+	[2] = (SEG_A | SEG_B | SEG_E | SEG_D | SEG_G),
+	[3] = (SEG_A | SEG_B | SEG_G | SEG_C | SEG_D),
+	[4] = (SEG_F | SEG_B | SEG_G | SEG_C),
+	[5] = (SEG_A | SEG_F | SEG_G | SEG_C | SEG_D),
+	[6] = (SEG_A | SEG_F | SEG_G | SEG_E | SEG_C | SEG_D),
+	[7] = (SEG_A | SEG_B | SEG_C),
+	[8] = (SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F | SEG_G),
+	[9] = (SEG_A | SEG_F | SEG_B | SEG_G | SEG_C | SEG_D),
+
+	// hex digits
+	[10] = (SEG_A | SEG_F | SEG_B | SEG_G | SEG_C | SEG_E),
+	[11] = (SEG_F | SEG_G | SEG_C | SEG_D | SEG_E),
+	[12] = (SEG_A | SEG_F | SEG_E | SEG_D),
+	[13] = (SEG_B | SEG_G | SEG_C | SEG_D | SEG_E),
+
+	[14] = (SEG_A | SEG_D | SEG_E | SEG_F | SEG_G),
+	[15] = (SEG_A | SEG_E | SEG_F | SEG_G),
+};
 
 // --------------------------------------------------------
 
@@ -232,12 +254,14 @@ void print_dec(uint32_t v)
 char getchar_prompt(char *prompt)
 {
 	int32_t c = -1;
+	int num = 0;
 
 	uint32_t cycles_begin, cycles_now, cycles;
 	__asm__ volatile ("rdcycle %0" : "=r"(cycles_begin));
 
 	reg_leds = ~0;
-	reg_segs = ~DIGIT_0 & 0xff;
+
+	reg_segs = ~digits[num] & 0xff;
 
 	if (prompt)
 		print(prompt);
@@ -248,9 +272,15 @@ char getchar_prompt(char *prompt)
 		if (cycles > 16000000) {
 			if (prompt)
 				print(prompt);
+
+			if (num > ARRAY_SIZE(digits) - 1)
+				num = 0;
+
 			cycles_begin = cycles_now;
 			reg_leds = ~reg_leds;
-			reg_segs = ~reg_segs;
+
+			if (reg_leds)
+				reg_segs = ~digits[num++] & 0xff;
 		}
 		c = reg_uart_data;
 	}
