@@ -49,24 +49,21 @@ extern uint32_t sram;
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
-static unsigned int digits[] = {
-	[0] = (SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F),
-	[1] = (SEG_B | SEG_C),
-	[2] = (SEG_A | SEG_B | SEG_E | SEG_D | SEG_G),
-	[3] = (SEG_A | SEG_B | SEG_G | SEG_C | SEG_D),
-	[4] = (SEG_F | SEG_B | SEG_G | SEG_C),
-	[5] = (SEG_A | SEG_F | SEG_G | SEG_C | SEG_D),
-	[6] = (SEG_A | SEG_F | SEG_G | SEG_E | SEG_C | SEG_D),
-	[7] = (SEG_A | SEG_B | SEG_C),
-	[8] = (SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F | SEG_G),
-	[9] = (SEG_A | SEG_F | SEG_B | SEG_G | SEG_C | SEG_D),
-
-	// hex digits
+static unsigned char digits[] = {
+	[0]  = (SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F),
+	[1]  = (SEG_B | SEG_C),
+	[2]  = (SEG_A | SEG_B | SEG_E | SEG_D | SEG_G),
+	[3]  = (SEG_A | SEG_B | SEG_G | SEG_C | SEG_D),
+	[4]  = (SEG_F | SEG_B | SEG_G | SEG_C),
+	[5]  = (SEG_A | SEG_F | SEG_G | SEG_C | SEG_D),
+	[6]  = (SEG_A | SEG_F | SEG_G | SEG_E | SEG_C | SEG_D),
+	[7]  = (SEG_A | SEG_B | SEG_C),
+	[8]  = (SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F | SEG_G),
+	[9]  = (SEG_A | SEG_F | SEG_B | SEG_G | SEG_C | SEG_D),
 	[10] = (SEG_A | SEG_F | SEG_B | SEG_G | SEG_C | SEG_E),
 	[11] = (SEG_F | SEG_G | SEG_C | SEG_D | SEG_E),
 	[12] = (SEG_A | SEG_F | SEG_E | SEG_D),
 	[13] = (SEG_B | SEG_G | SEG_C | SEG_D | SEG_E),
-
 	[14] = (SEG_A | SEG_D | SEG_E | SEG_F | SEG_G),
 	[15] = (SEG_A | SEG_E | SEG_F | SEG_G),
 };
@@ -254,14 +251,11 @@ void print_dec(uint32_t v)
 char getchar_prompt(char *prompt)
 {
 	int32_t c = -1;
-	int num = 0;
 
 	uint32_t cycles_begin, cycles_now, cycles;
 	__asm__ volatile ("rdcycle %0" : "=r"(cycles_begin));
 
 	reg_leds = ~0;
-
-	reg_segs = ~digits[num] & 0xff;
 
 	if (prompt)
 		print(prompt);
@@ -273,20 +267,13 @@ char getchar_prompt(char *prompt)
 			if (prompt)
 				print(prompt);
 
-			if (num > ARRAY_SIZE(digits) - 1)
-				num = 0;
-
 			cycles_begin = cycles_now;
 			reg_leds = ~reg_leds;
-
-			if (reg_leds)
-				reg_segs = ~digits[num++] & 0xff;
 		}
 		c = reg_uart_data;
 	}
 
 	reg_leds = 0;
-	reg_segs = ~0;
 	return c;
 }
 
@@ -705,6 +692,49 @@ void cmd_echo()
 		putchar(c);
 }
 
+int get_digit(char c)
+{
+	int val = c - 48;
+
+	if (val >= 0 && val <= 9)
+		return val;
+
+	val = c - 96;
+
+	if (val >= 0 && val <= 6)
+		return val + 9;
+
+	return -1;
+}
+
+void cmd_set_leds()
+{
+	print("Enter digits to show on LEDs\n\n");
+	char c;
+	int idx = 0;
+
+	unsigned char *array = (char *) &reg_segs;
+
+	reg_segs = ~0;
+
+	while (idx < 4 && (c = getchar()) != '!') {
+		int val = get_digit(c);
+
+		if (c == ' ')
+			array[3 - idx++] = 0xff;
+		else if (val == -1 && c != '.')
+			continue;
+
+		putchar(c);
+
+		if (c != ' ' && c != '.') {
+			array[3 - idx++] = ~digits[val];
+		} else if (idx > 0) {
+			array[3 - idx + 1] &= c == '.' ? ~((char) SEG_DP) : 0xff;
+		}
+	}
+}
+
 // --------------------------------------------------------
 
 void main()
@@ -717,6 +747,7 @@ void main()
 	set_flash_qspi_flag();
 
 	reg_leds = 127;
+	reg_segs = ~(digits[8] <<24 | digits[0] <<16 | digits[8] << 8 | digits[6]);
 	while (getchar_prompt("Press ENTER to continue..\n") != '\r') { /* wait */ }
 
 	print("\n");
@@ -756,6 +787,7 @@ void main()
 		print("   [M] Run Memtest\n");
 		print("   [S] Print SPI state\n");
 		print("   [e] Echo UART\n");
+		print("   [l] Set LED display");
 		print("\n");
 
 		for (int rep = 10; rep > 0; rep--)
@@ -805,6 +837,9 @@ void main()
 				break;
 			case 'e':
 				cmd_echo();
+				break;
+			case 'l':
+				cmd_set_leds();
 				break;
 			default:
 				continue;

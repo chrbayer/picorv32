@@ -71,28 +71,45 @@ module hx8kdemo (
 	wire [31:0] iomem_wdata;
 	reg  [31:0] iomem_rdata;
 
-	reg [31:0] gpio [1:0];
-	assign leds = gpio[0];
-	assign segs = gpio[1];
+	reg [7:0] gpio [0:1][0:3];
+	reg [2:0] digit = 0;
+	reg [14:0] cnt;
+
+	assign leds = { gpio[0][0], gpio[0][1], gpio[0][2], gpio[0][3] };
+	assign segs = { ~(4'b1000 >> digit), gpio[1][digit] };
 
 	integer idx;
+	integer i;
 
 	always @(posedge clk_pll) begin
 		if (!resetn) begin
-			gpio[0] <= 0;
-			gpio[1] <= 0;
+            for (i = 0; i < 4; i = i + 1) begin
+			    gpio[0][i] <= 0;
+			    gpio[1][i] <= 0;
+            end
 		end else begin
 			iomem_ready <= 0;
 			idx = iomem_addr[7:0] / 4;
 			if (iomem_valid && !iomem_ready && iomem_addr[31:24] == 8'h 03) begin
 				iomem_ready <= 1;
-				iomem_rdata <= gpio[idx];
-				if (iomem_wstrb[0]) gpio[idx][ 7: 0] <= iomem_wdata[ 7: 0];
-				if (iomem_wstrb[1]) gpio[idx][15: 8] <= iomem_wdata[15: 8];
-				if (iomem_wstrb[2]) gpio[idx][23:16] <= iomem_wdata[23:16];
-				if (iomem_wstrb[3]) gpio[idx][31:24] <= iomem_wdata[31:24];
+				iomem_rdata[ 7: 0] <= gpio[idx][0];
+				iomem_rdata[15: 8] <= gpio[idx][1];
+				iomem_rdata[23:16] <= gpio[idx][2];
+				iomem_rdata[31:24] <= gpio[idx][3];
+				if (iomem_wstrb[0]) gpio[idx][0] <= iomem_wdata[ 7: 0];
+				if (iomem_wstrb[1]) gpio[idx][1] <= iomem_wdata[15: 8];
+				if (iomem_wstrb[2]) gpio[idx][2] <= iomem_wdata[23:16];
+				if (iomem_wstrb[3]) gpio[idx][3] <= iomem_wdata[31:24];
 			end
-		end
+        end
+    end
+
+	always @(posedge clk_pll) begin
+		cnt <= cnt + 1;
+	end
+
+	always @(posedge clk_pll) begin
+		if (!cnt) digit <= digit + 1;
 	end
 
 	picosoc soc (
