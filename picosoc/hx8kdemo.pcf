@@ -65,3 +65,27 @@ set_io leds[2] K12
 set_io leds[1] K11
 set_io leds[0] J11
 
+set_io dip[23] D5
+set_io dip[22] C4
+set_io dip[21] D4
+set_io dip[20] E4
+set_io dip[19] F4
+set_io dip[18] F3
+set_io dip[17] H4
+set_io dip[16] G4
+set_io dip[15] D10
+set_io dip[14] D9
+set_io dip[13] D7
+set_io dip[12] D6
+set_io dip[11] C7
+set_io dip[10] C6
+set_io dip[9]  A5
+set_io dip[8]  C5
+set_io dip[7]  G12
+set_io dip[6]  F12
+set_io dip[5]  F11
+set_io dip[4]  E11
+set_io dip[3]  D12
+set_io dip[2]  D11
+set_io dip[1]  C12
+set_io dip[0]  C11

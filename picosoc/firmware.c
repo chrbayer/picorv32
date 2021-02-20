@@ -37,6 +37,7 @@ extern uint32_t sram;
 #define reg_uart_data (*(volatile uint32_t*)0x02000008)
 #define reg_leds (*(volatile uint32_t*)0x03000000)
 #define reg_segs (*(volatile uint32_t*)0x03000004)
+#define reg_dips (*(volatile uint32_t*)0x04000000)
 
 #define SEG_A	1<<0
 #define SEG_B	1<<1
@@ -747,7 +748,8 @@ void main()
 	set_flash_qspi_flag();
 
 	reg_leds = 127;
-	reg_segs = ~(digits[8] <<24 | digits[0] <<16 | digits[8] << 8 | digits[6]);
+	reg_segs = reg_dips | 0xff << 24;
+
 	while (getchar_prompt("Press ENTER to continue..\n") != '\r') { /* wait */ }
 
 	print("\n");

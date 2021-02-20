@@ -25,6 +25,7 @@ module hx8kdemo (
 
 	output [31:0] leds,
 	output [11:0] segs,
+	input  [23:0] dip,
 
 	output flash_csb,
 	output flash_clk,
@@ -90,16 +91,24 @@ module hx8kdemo (
 		end else begin
 			iomem_ready <= 0;
 			idx = iomem_addr[7:0] / 4;
-			if (iomem_valid && !iomem_ready && iomem_addr[31:24] == 8'h 03) begin
-				iomem_ready <= 1;
-				iomem_rdata[ 7: 0] <= gpio[idx][0];
-				iomem_rdata[15: 8] <= gpio[idx][1];
-				iomem_rdata[23:16] <= gpio[idx][2];
-				iomem_rdata[31:24] <= gpio[idx][3];
-				if (iomem_wstrb[0]) gpio[idx][0] <= iomem_wdata[ 7: 0];
-				if (iomem_wstrb[1]) gpio[idx][1] <= iomem_wdata[15: 8];
-				if (iomem_wstrb[2]) gpio[idx][2] <= iomem_wdata[23:16];
-				if (iomem_wstrb[3]) gpio[idx][3] <= iomem_wdata[31:24];
+			if (iomem_valid && !iomem_ready) begin
+				if (iomem_addr[31:24] == 8'h 03) begin
+					iomem_ready <= 1;
+					iomem_rdata[ 7: 0] <= gpio[idx][0];
+					iomem_rdata[15: 8] <= gpio[idx][1];
+					iomem_rdata[23:16] <= gpio[idx][2];
+					iomem_rdata[31:24] <= gpio[idx][3];
+					if (iomem_wstrb[0]) gpio[idx][0] <= iomem_wdata[ 7: 0];
+					if (iomem_wstrb[1]) gpio[idx][1] <= iomem_wdata[15: 8];
+					if (iomem_wstrb[2]) gpio[idx][2] <= iomem_wdata[23:16];
+					if (iomem_wstrb[3]) gpio[idx][3] <= iomem_wdata[31:24];
+				end else if (iomem_addr[31:24] == 8'h 04) begin
+					iomem_ready <= 1;
+					iomem_rdata[ 7: 0] <= dip[ 7: 0];
+					iomem_rdata[15: 8] <= dip[15: 8];
+					iomem_rdata[23:16] <= dip[23:16];
+					iomem_rdata[31:24] <= 0;
+				end
 			end
         end
     end
