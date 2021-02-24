@@ -73,11 +73,15 @@ module hx8kdemo (
 	reg  [31:0] iomem_rdata;
 
 	reg [7:0] gpio [0:1][0:3];
+	reg [7:0] steps = 0;
 	reg [2:0] digit = 0;
 	reg [14:0] cnt;
 
-	assign leds = { gpio[0][0], gpio[0][1], gpio[0][2], gpio[0][3] };
-	assign segs = { ~(4'b1000 >> digit), gpio[1][digit] };
+	assign leds[ 7: 0] = cnt < (steps * 255) ? gpio[0][0] : 8'b0;
+	assign leds[15: 8] = cnt < (steps * 255) ? gpio[0][1] : 8'b0;
+	assign leds[23:16] = cnt < (steps * 255) ? gpio[0][2] : 8'b0;
+	assign leds[31:24] = cnt < (steps * 255) ? gpio[0][3] : 8'b0;
+	assign segs = { cnt < (steps * 255) ? ~(4'b1000 >> digit) : 4'b1111, gpio[1][digit] };
 
 	integer idx;
 	integer i;
@@ -108,6 +112,10 @@ module hx8kdemo (
 					iomem_rdata[15: 8] <= dip[15: 8];
 					iomem_rdata[23:16] <= dip[23:16];
 					iomem_rdata[31:24] <= 0;
+				end else if (iomem_addr[31:24] == 8'h 05) begin
+					iomem_ready <= 1;
+					iomem_rdata[ 7: 0] <= steps[ 7: 0];
+					if (iomem_wstrb[0]) steps <= iomem_wdata[ 7: 0];
 				end
 			end
         end

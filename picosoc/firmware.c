@@ -38,6 +38,7 @@ extern uint32_t sram;
 #define reg_leds (*(volatile uint32_t*)0x03000000)
 #define reg_segs (*(volatile uint32_t*)0x03000004)
 #define reg_dips (*(volatile uint32_t*)0x04000000)
+#define reg_pwm (*(volatile uint32_t*)0x05000000)
 
 #define SEG_A	1<<0
 #define SEG_B	1<<1
@@ -736,6 +737,30 @@ void cmd_set_leds()
 	}
 }
 
+void cmd_set_pwm()
+{
+	print("Enter PWM value from 00 to FF (with leading zero)\n\n");
+	char c;
+	int tmp = 0, idx = 2;
+
+	while (idx) {
+		int val;
+
+		c = getchar();
+
+		val = get_digit(c);
+
+		if (val == -1)
+			continue;
+
+		putchar(c);
+
+		tmp |= val << 4 * --idx;
+	}
+
+	reg_pwm = tmp;
+}
+
 // --------------------------------------------------------
 
 void main()
@@ -749,6 +774,8 @@ void main()
 
 	reg_leds = 127;
 	reg_segs = reg_dips | 0xff << 24;
+
+	reg_pwm = 100;
 
 	while (getchar_prompt("Press ENTER to continue..\n") != '\r') { /* wait */ }
 
@@ -789,7 +816,8 @@ void main()
 		print("   [M] Run Memtest\n");
 		print("   [S] Print SPI state\n");
 		print("   [e] Echo UART\n");
-		print("   [l] Set LED display");
+		print("   [l] Set LED display\n");
+		print("   [p] Set PWM rate");
 		print("\n");
 
 		for (int rep = 10; rep > 0; rep--)
@@ -842,6 +870,9 @@ void main()
 				break;
 			case 'l':
 				cmd_set_leds();
+				break;
+			case 'p':
+				cmd_set_pwm();
 				break;
 			default:
 				continue;
