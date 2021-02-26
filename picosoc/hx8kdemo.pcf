@@ -9,8 +9,8 @@ set_io flash_io0 M11
 set_io flash_io1 P11
 
 # these aren't connected to flash, need to be unused pins
-set_io flash_io2 P2
-set_io flash_io3 P3
+set_io flash_io2 P3
+set_io flash_io3 P4
 
 set_io ser_tx M9
 set_io ser_rx P14
@@ -89,3 +89,9 @@ set_io dip[3]  D12
 set_io dip[2]  D11
 set_io dip[1]  C12
 set_io dip[0]  C11
+
+set_io sw[4]   P2
+set_io sw[3]   J12
+set_io sw[2]   H12
+set_io sw[1]   H11
+set_io sw[0]   G11

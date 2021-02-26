@@ -26,6 +26,7 @@ module hx8kdemo (
 	output [31:0] leds,
 	output [11:0] segs,
 	input  [23:0] dip,
+	input  [4 :0] sw,
 
 	output flash_csb,
 	output flash_clk,
