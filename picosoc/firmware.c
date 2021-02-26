@@ -641,6 +641,10 @@ void cmd_benchmark_all()
 	print("instns         : ");
 	print_hex(instns, 8);
 	putchar('\n');
+
+	print("dipsw          : ");
+	print_hex(reg_dips, 8);
+	putchar('\n');
 }
 #endif
 
