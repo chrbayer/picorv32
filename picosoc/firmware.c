@@ -739,6 +739,9 @@ void cmd_set_leds()
 			array[3 - idx + 1] &= c == '.' ? ~((char) SEG_DP) : 0xff;
 		}
 	}
+
+	if (!idx)
+		reg_segs = reg_dips | 0xff << 24;
 }
 
 void cmd_set_pwm()
