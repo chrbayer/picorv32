@@ -19,8 +19,8 @@ hx8kdemo_tb.vvp: hx8kdemo_tb.v hx8kdemo.v spimemio.v simpleuart.v picosoc.v ../p
 hx8kdemo_syn_tb.vvp: hx8kdemo_tb.v hx8kdemo_syn.v spiflash.v
 	iverilog -s testbench -o $@ $^ `yosys-config --datdir/ice40/cells_sim.v`
 
-hx8kdemo_syn.v: hx8kdemo.blif
-	yosys -p 'read_blif -wideports hx8kdemo.blif; write_verilog hx8kdemo_syn.v'
+hx8kdemo_syn.v: hx8kdemo.json
+	yosys -p 'read_json $<; write_verilog $@'
 
 hx8kdemo.asc: hx8kdemo.pcf hx8kdemo.json
 	nextpnr-ice40 --hx8k --package ct256 --asc hx8kdemo.asc --json hx8kdemo.json --pcf hx8kdemo.pcf
