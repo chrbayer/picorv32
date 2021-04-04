@@ -1,6 +1,6 @@
 
 RISCV_GNU_TOOLCHAIN_GIT_REVISION = 411d134
-RISCV_GNU_TOOLCHAIN_INSTALL_PREFIX = /opt/riscv32
+RISCV_GNU_TOOLCHAIN_INSTALL_PREFIX =
 
 # Give the user some easy overrides for local configuration quirks.
 # If you change one of these and it breaks, then you get to keep both pieces.
@@ -15,7 +15,7 @@ TEST_OBJS = $(addsuffix .o,$(basename $(wildcard tests/*.S)))
 FIRMWARE_OBJS = firmware/start.o firmware/irq.o firmware/print.o firmware/hello.o firmware/sieve.o firmware/multest.o firmware/stats.o
 GCC_WARNS  = -Werror -Wall -Wextra -Wshadow -Wundef -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings
 GCC_WARNS += -Wredundant-decls -Wstrict-prototypes -Wmissing-prototypes -pedantic # -Wconversion
-TOOLCHAIN_PREFIX = $(RISCV_GNU_TOOLCHAIN_INSTALL_PREFIX)i/bin/riscv32-unknown-elf-
+TOOLCHAIN_PREFIX = riscv64-unknown-elf-
 COMPRESSED_ISA = C
 
 # Add things like "export http_proxy=... https_proxy=..." here
@@ -103,7 +103,7 @@ firmware/firmware.hex: firmware/firmware.bin firmware/makehex.py
 	$(PYTHON) firmware/makehex.py $< 32768 > $@
 
 firmware/firmware.bin: firmware/firmware.elf
-	$(TOOLCHAIN_PREFIX)objcopy -O binary $< $@
+	$(TOOLCHAIN_PREFIX)objcopy -F elf32-littleriscv -O binary $< $@
 	chmod -x $@
 
 firmware/firmware.elf: $(FIRMWARE_OBJS) $(TEST_OBJS) firmware/sections.lds
