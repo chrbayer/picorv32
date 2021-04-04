@@ -23,7 +23,7 @@ module testbench;
 	reg clk;
 	always #5 clk = (clk === 1'b0);
 
-	localparam ser_half_period = 53;
+	localparam ser_half_period = 52;
 	event ser_sample;
 
 	initial begin
