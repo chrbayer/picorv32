@@ -1,0 +1,35 @@
+CAPI=2:
+
+name : ::ecp5evn:0
+
+filesets:
+  ecp5evn:
+    files: [ecp5evn.v]
+    file_type : verilogSource
+    depend : [picosoc]
+  ecp5evnsim:
+    files:
+      - ecp5evn_tb.v
+    file_type : verilogSource
+    depend : [spiflash, "yosys:techlibs:ecp5"]
+
+  constraints:
+    files: [ecp5evn.lpf]
+    file_type : LPF
+
+targets:
+  synth:
+    default_tool : trellis
+    filesets : [constraints, ecp5evn]
+    tools:
+      trellis:
+        nextpnr_options : [--package, CABGA381, 85k]
+    toplevel : [ecp5evn]
+  sim:
+    default_tool : icarus
+    filesets : [ecp5evn, ecp5evnsim]
+    tools:
+      xsim:
+        xelab_options : [--timescale, 1ns/1ps]
+
+    toplevel : [testbench]
