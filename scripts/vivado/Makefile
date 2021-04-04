@@ -14,7 +14,7 @@ export RDI_VERBOSE = False
 help:
 	@echo ""
 	@echo "Simple synthesis tests:"
-	@echo "  make synth_area_{small|regular|large}"
+	@echo "  make synth_area_{rvnp|small|regular|large}"
 	@echo "  make synth_speed"
 	@echo ""
 	@echo "Example system:"
@@ -49,8 +49,8 @@ firmware.hex: firmware.S firmware.c firmware.lds
 tab_%/results.txt:
 	bash tabtest.sh $@
 
-area: synth_area_small synth_area_regular synth_area_large
-	-grep -B4 -A10 'Slice LUTs' synth_area_small.log synth_area_regular.log synth_area_large.log
+area: synth_area_rvnp synth_area_small synth_area_regular synth_area_large
+	-grep -B4 -A10 'Slice LUTs' synth_area_rvnp.log synth_area_small.log synth_area_regular.log synth_area_large.log
 
 table.txt: tab_small_xc7k_2/results.txt  tab_small_xc7k_3/results.txt
 table.txt: tab_small_xc7v_2/results.txt  tab_small_xc7v_3/results.txt
