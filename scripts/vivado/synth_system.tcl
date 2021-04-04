@@ -1,9 +1,10 @@
 
+read_verilog sync_reset.v
 read_verilog system.v
 read_verilog ../../picorv32.v
 read_xdc synth_system.xdc
 
-synth_design -part xc7a35t-cpg236-1 -top system
+synth_design -part xcku115-flvb2104-2-e -top system
 opt_design
 place_design
 route_design
