@@ -2,6 +2,8 @@
 CROSS=riscv64-unknown-elf-
 CFLAGS=
 
+all: icesimg
+
 # ---- iCE40 HX8K Breakout Board ----
 
 hx8ksim: hx8kdemo_tb.vvp hx8kdemo_fw.hex
@@ -196,6 +198,69 @@ ulx3s_fw.hex: ulx3s_fw.elf
 ulx3s_fw.bin: ulx3s_fw.elf
 	$(CROSS)objcopy -O binary ulx3s_fw.elf ulx3s_fw.bin
 
+# ---- iCE40 iCESugar Board ----
+# icessim: icesugar_tb.vvp icesugar_fw.hex
+# 	vvp -N $< +firmware=icesugar_fw.hex
+
+icessynsim: icesugar_syn_tb.vvp icesugar_fw.hex
+	vvp -N $< +firmware=icesugar_fw.hex
+
+icesugar.json: icesugar.v ice40up5k_spram.v spimemio.v simpleuart.v picosoc.v ../picorv32.v
+	yosys -ql icesugar.log -p 'synth_ice40 -top icesugar -json icesugar.json' $^
+
+icesugar_tb.vvp: icesugar_tb.v icesugar.v ice40up5k_spram.v spimemio.v simpleuart.v picosoc.v ../picorv32.v spiflash.v
+	iverilog -s testbench -o $@ $^ `yosys-config --datdir/ice40/cells_sim.v`
+
+icesugar_syn_tb.vvp: icesugar_tb.v icesugar_syn.v spiflash.v
+	iverilog -s testbench -o $@ $^ `yosys-config --datdir/ice40/cells_sim.v`
+
+icesugar_syn.v: icesugar.json
+	yosys -p 'read_json icesugar.json; write_verilog icesugar_syn.v'
+
+icesugar.asc: icesugar.pcf icesugar.json
+	nextpnr-ice40 --freq 13 --up5k --asc icesugar.asc --pcf icesugar.pcf --json icesugar.json
+
+icesugar.bin: icesugar.asc
+	icetime -d up5k -c 12 -mtr icesugar.rpt icesugar.asc
+	icepack icesugar.asc icesugar.bin
+
+ICELINK_DIR=$(shell df | grep iCELink | awk '{print $$6}')
+${warning iCELink path: $(ICELINK_DIR)}
+
+icessim: 
+	@nextpnr-ice40 --freq 13 --up5k --pcf icesugar.pcf --json icesugar.json --package sg48 --gui
+
+
+icesprog: icesugar.bin icesugar_fw.bin
+	@echo  "icesprog"
+	icesprog icesugar.bin
+	icesprog -o 0x100000 icesugar_fw.bin
+	@#truncate -s 1048576 icesugar.bin
+	@#@cat icesugar.bin icesugar_fw.bin > icesugar_spiflash.bin
+	@#if [ -d '$(ICELINK_DIR)' ]; \
+        #then \
+            #cp icesugar.bin $(ICELINK_DIR); \
+        #else \
+            #echo "iCELink not found"; \
+            #exit 1; \
+    #fi
+
+icesimg: icesugar.bin icesugar_fw.bin
+	truncate -s 1048576 icesugar.bin
+	cat icesugar.bin icesugar_fw.bin > picorv32.bin
+
+icesugar_sections.lds: sections.lds
+	$(CROSS)cpp -P -DICEBREAKER -o $@ $^
+
+icesugar_fw.elf: icesugar_sections.lds start.s firmware.c
+	$(CROSS)gcc $(CFLAGS) -DICEBREAKER -march=rv32ic -Wl,-Bstatic,-T,icesugar_sections.lds,--strip-debug -ffreestanding -nostdlib -o icesugar_fw.elf start.s firmware.c
+
+icesugar_fw.hex: icesugar_fw.elf
+	$(CROSS)objcopy -O verilog icesugar_fw.elf icesugar_fw.hex
+
+icesugar_fw.bin: icesugar_fw.elf
+	$(CROSS)objcopy -O binary icesugar_fw.elf icesugar_fw.bin
+
 # ---- Testbench for SPI Flash Model ----
 
 spiflash_tb: spiflash_tb.vvp firmware.hex
@@ -225,9 +290,12 @@ clean:
 	rm -f ulx3s_fw.elf ulx3s_fw.hex ulx3s_fw.bin
 	rm -f ulx3s.json ulx3s.log ulx3s.bit ulx3s_out.config
 	rm -f ulx3s_tb.json ulx3s_tb.vvp ulx3s_syn_tb.vvp ulx3s_syn.v
+	rm -f icesugar.asc icesugar.bin icesugar.json icesugar.log
+	rm -f icesugar.rpt icesugar_fw.bin icesugar_fw.elf picorv32.bin
 
 .PHONY: spiflash_tb clean
 .PHONY: hx8kprog hx8kprog_fw hx8ksim hx8ksynsim
 .PHONY: icebprog icebprog_fw icebsim icebsynsim
 .PHONY: ecp5evnprog ecp5evnprog_fw ecp5evnsim ecp5evnsynsim
 .PHONY: ulx3sprog ulx3sprog_fw ulx3ssim ulx3ssynsim
+.PHONY: icesprog icesprog_fw icessim icessynsim icesimg

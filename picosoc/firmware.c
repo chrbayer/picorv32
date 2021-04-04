@@ -773,6 +773,10 @@ void main()
 	print(" |_|   |_|\\___\\___/____/ \\___/ \\____|\n");
 	print("\n");
 
+	print("Buid Date:");
+	print(__DATE__);
+	print("\n");
+
 	print("Total memory: ");
 	print_dec(MEM_TOTAL / 1024);
 	print(" KiB\n");
